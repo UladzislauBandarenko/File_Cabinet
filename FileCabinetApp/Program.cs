@@ -20,6 +20,7 @@ namespace FileCabinetApp
             new Tuple<string, Action<string>>("stat", Stat),
             new Tuple<string, Action<string>>("create", Create),
             new Tuple<string, Action<string>>("list", List),
+            new Tuple<string, Action<string>>("edit", Edit),
         };
 
         private static string[][] helpMessages = new string[][]
@@ -29,6 +30,7 @@ namespace FileCabinetApp
             new string[] { "stat", "prints the number of records", "The 'stat' command prints the number of records." },
             new string[] { "create", "creates a new record", "The 'create' command creates a new record." },
             new string[] { "list", "lists all records", "The 'list' command lists all records." },
+            new string[] { "edit", "edits an existing record", "The 'edit' command edits an existing record." },
         };
 
         public static void Main(string[] args)
@@ -113,26 +115,48 @@ namespace FileCabinetApp
 
         private static void Create(string parameters)
         {
-            Console.Write("First name: ");
-            var firstName = Console.ReadLine();
+            string firstName = GetValidInput<string>("First name", s => !string.IsNullOrWhiteSpace(s) && s.Length >= 2 && s.Length <= 60);
+            string lastName = GetValidInput<string>("Last name", s => !string.IsNullOrWhiteSpace(s) && s.Length >= 2 && s.Length <= 60);
+            DateTime dateOfBirth = GetValidInput<DateTime>("Date of birth (mm/dd/yyyy)", s => DateTime.TryParse(s, out var date) && date >= new DateTime(1950, 1, 1) && date <= DateTime.Now);
+            short age = GetValidInput<short>("Age", s => short.TryParse(s, out var a) && a >= 0 && a <= 120);
+            decimal salary = GetValidInput<decimal>("Salary", s => decimal.TryParse(s, out var sal) && sal >= 0 && sal <= 1000000);
+            char gender = GetValidInput<char>("Gender (M/F)", s => s.Length == 1 && (s[0] == 'M' || s[0] == 'F'));
 
-            Console.Write("Last name: ");
-            var lastName = Console.ReadLine();
+            try
+            {
+                var recordId = Program.fileCabinetService.CreateRecord(firstName, lastName, dateOfBirth, age, salary, gender);
+                Console.WriteLine($"Record #{recordId} is created.");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Failed to create record: {ex.Message}");
+            }
+        }
 
-            Console.Write("Date of birth (mm/dd/yyyy): ");
-            var dateOfBirth = DateTime.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+        private static void Edit(string parameters)
+        {
+            if (!int.TryParse(parameters, out int id))
+            {
+                Console.WriteLine($"Invalid record id: {parameters}");
+                return;
+            }
 
-            Console.Write("Age: ");
-            var age = short.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+            try
+            {
+                string firstName = GetValidInput<string>("First name", s => !string.IsNullOrWhiteSpace(s) && s.Length >= 2 && s.Length <= 60);
+                string lastName = GetValidInput<string>("Last name", s => !string.IsNullOrWhiteSpace(s) && s.Length >= 2 && s.Length <= 60);
+                DateTime dateOfBirth = GetValidInput<DateTime>("Date of birth (mm/dd/yyyy)", s => DateTime.TryParse(s, out var date) && date >= new DateTime(1950, 1, 1) && date <= DateTime.Now);
+                short age = GetValidInput<short>("Age", s => short.TryParse(s, out var a) && a >= 0 && a <= 120);
+                decimal salary = GetValidInput<decimal>("Salary", s => decimal.TryParse(s, out var sal) && sal >= 0 && sal <= 1000000);
+                char gender = GetValidInput<char>("Gender (M/F)", s => s.Length == 1 && (s[0] == 'M' || s[0] == 'F'));
 
-            Console.Write("Salary: ");
-            var salary = decimal.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
-
-            Console.Write("Gender (M/F): ");
-            var gender = char.Parse(Console.ReadLine());
-
-            var recordId = Program.fileCabinetService.CreateRecord(firstName, lastName, dateOfBirth, age, salary, gender);
-            Console.WriteLine($"Record #{recordId} is created.");
+                Program.fileCabinetService.EditRecord(id, firstName, lastName, dateOfBirth, age, salary, gender);
+                Console.WriteLine($"Record #{id} is updated.");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Failed to edit record: {ex.Message}");
+            }
         }
 
         private static void List(string parameters)
@@ -143,6 +167,18 @@ namespace FileCabinetApp
             {
                 Console.WriteLine($"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}");
             }
+        }
+
+        private static T GetValidInput<T>(string prompt, Func<string, bool> validator)
+        {
+            string input;
+            do
+            {
+                Console.Write($"{prompt}: ");
+                input = Console.ReadLine();
+            } while (!validator(input));
+
+            return (T)Convert.ChangeType(input, typeof(T));
         }
     }
 }

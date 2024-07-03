@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Collections.ObjectModel;
+using System.Globalization;
 
 namespace FileCabinetApp;
 
@@ -9,7 +10,7 @@ public static class Program
     private const int CommandHelpIndex = 0;
     private const int DescriptionHelpIndex = 1;
     private const int ExplanationHelpIndex = 2;
-    private static FileCabinetService fileCabinetService;
+    private static IFileCabinetService fileCabinetService;
 
     private static bool isRunning = true;
 
@@ -210,7 +211,7 @@ public static class Program
         var property = inputs[0].ToLower();
         var value = inputs[1].Trim('"');
 
-        FileCabinetRecord[] records = null;
+        ReadOnlyCollection<FileCabinetRecord> records;
 
         switch (property)
         {
@@ -228,7 +229,7 @@ public static class Program
                 return;
         }
 
-        if (records != null && records.Length > 0)
+        if (records.Count > 0)
         {
             foreach (var record in records)
             {
@@ -248,7 +249,8 @@ public static class Program
         {
             Console.Write($"{prompt}: ");
             input = Console.ReadLine();
-        } while (!validator(input));
+        }
+        while (!validator(input));
 
         return (T)Convert.ChangeType(input, typeof(T));
     }

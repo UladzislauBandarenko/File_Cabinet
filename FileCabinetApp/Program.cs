@@ -21,6 +21,7 @@ namespace FileCabinetApp
             new Tuple<string, Action<string>>("create", Create),
             new Tuple<string, Action<string>>("list", List),
             new Tuple<string, Action<string>>("edit", Edit),
+            new Tuple<string, Action<string>>("find", Find),
         };
 
         private static string[][] helpMessages = new string[][]
@@ -31,6 +32,7 @@ namespace FileCabinetApp
             new string[] { "create", "creates a new record", "The 'create' command creates a new record." },
             new string[] { "list", "lists all records", "The 'list' command lists all records." },
             new string[] { "edit", "edits an existing record", "The 'edit' command edits an existing record." },
+            new string[] { "find", "finds records by property", "The 'find' command finds records by property. Usage: find <property> <value>" },
         };
 
         public static void Main(string[] args)
@@ -166,6 +168,49 @@ namespace FileCabinetApp
             foreach (var record in records)
             {
                 Console.WriteLine($"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}");
+            }
+        }
+
+        private static void Find(string parameters)
+        {
+            var inputs = parameters.Split(' ', 2);
+            if (inputs.Length < 2)
+            {
+                Console.WriteLine("Invalid command format. Usage: find <property> <value>");
+                return;
+            }
+
+            var property = inputs[0].ToLower();
+            var value = inputs[1].Trim('"');
+
+            FileCabinetRecord[] records = null;
+
+            switch (property)
+            {
+                case "firstname":
+                    records = Program.fileCabinetService.FindByFirstName(value);
+                    break;
+                case "lastname":
+                    records = Program.fileCabinetService.FindByLastName(value);
+                    break;
+                case "dateofbirth":
+                    records = Program.fileCabinetService.FindByDateOfBirth(value);
+                    break;
+                default:
+                    Console.WriteLine($"Searching by {property} is not supported.");
+                    return;
+            }
+
+            if (records != null && records.Length > 0)
+            {
+                foreach (var record in records)
+                {
+                    Console.WriteLine($"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("No records found.");
             }
         }
 

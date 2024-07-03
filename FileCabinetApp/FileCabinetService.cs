@@ -1,8 +1,13 @@
+using System.Globalization;
+
 namespace FileCabinetApp;
 
 public class FileCabinetService
 {
     private readonly List<FileCabinetRecord> list = new List<FileCabinetRecord>();
+    private readonly Dictionary<string, List<FileCabinetRecord>> firstNameDictionary = new Dictionary<string, List<FileCabinetRecord>>(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<FileCabinetRecord>> lastNameDictionary = new Dictionary<string, List<FileCabinetRecord>>(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<FileCabinetRecord>> dateOfBirthDictionary = new Dictionary<string, List<FileCabinetRecord>>(StringComparer.OrdinalIgnoreCase);
 
     public int CreateRecord(string firstName, string lastName, DateTime dateOfBirth, short age, decimal salary, char gender)
     {
@@ -48,6 +53,27 @@ public class FileCabinetService
         };
 
         this.list.Add(record);
+
+        if (!this.firstNameDictionary.ContainsKey(firstName))
+        {
+            this.firstNameDictionary[firstName] = new List<FileCabinetRecord>();
+        }
+
+        this.firstNameDictionary[firstName].Add(record);
+
+        if (!this.lastNameDictionary.ContainsKey(lastName))
+        {
+            this.lastNameDictionary[lastName] = new List<FileCabinetRecord>();
+        }
+
+        this.lastNameDictionary[lastName].Add(record);
+
+        if (!this.dateOfBirthDictionary.ContainsKey(dateOfBirth.ToString("yyyy-MM-dd")))
+        {
+            this.dateOfBirthDictionary[dateOfBirth.ToString("yyyy-MM-dd")] = new List<FileCabinetRecord>();
+        }
+
+        this.dateOfBirthDictionary[dateOfBirth.ToString("yyyy-MM-dd")].Add(record);
 
         return record.Id;
     }
@@ -100,11 +126,86 @@ public class FileCabinetService
             throw new ArgumentException("Gender must be either 'M' or 'F'.", nameof(gender));
         }
 
+        // Remove from old firstName dictionary entry
+        if (this.firstNameDictionary.ContainsKey(record.FirstName))
+        {
+            this.firstNameDictionary[record.FirstName].Remove(record);
+        }
+
+        // Remove from old lastName dictionary entry
+        if (this.lastNameDictionary.ContainsKey(record.LastName))
+        {
+            this.lastNameDictionary[record.LastName].Remove(record);
+        }
+
+        // Remove from old dateOfBirth dictionary entry
+        if (this.dateOfBirthDictionary.ContainsKey(record.DateOfBirth.ToString("yyyy-MM-dd")))
+        {
+            this.dateOfBirthDictionary[record.DateOfBirth.ToString("yyyy-MM-dd")].Remove(record);
+        }
+
         record.FirstName = firstName;
         record.LastName = lastName;
         record.DateOfBirth = dateOfBirth;
         record.Age = age;
         record.Salary = salary;
         record.Gender = gender;
+
+        // Add to new firstName dictionary entry
+        if (!this.firstNameDictionary.ContainsKey(firstName))
+        {
+            this.firstNameDictionary[firstName] = new List<FileCabinetRecord>();
+        }
+
+        this.firstNameDictionary[firstName].Add(record);
+
+        // Add to new lastName dictionary entry
+        if (!this.lastNameDictionary.ContainsKey(lastName))
+        {
+            this.lastNameDictionary[lastName] = new List<FileCabinetRecord>();
+        }
+
+        this.lastNameDictionary[lastName].Add(record);
+
+        // Add to new dateOfBirth dictionary entry
+        if (!this.dateOfBirthDictionary.ContainsKey(dateOfBirth.ToString("yyyy-MM-dd")))
+        {
+            this.dateOfBirthDictionary[dateOfBirth.ToString("yyyy-MM-dd")] = new List<FileCabinetRecord>();
+        }
+
+        this.dateOfBirthDictionary[dateOfBirth.ToString("yyyy-MM-dd")].Add(record);
+    }
+
+    public FileCabinetRecord[] FindByFirstName(string firstName)
+    {
+        if (this.firstNameDictionary.TryGetValue(firstName, out var records))
+        {
+            return records.ToArray();
+        }
+
+        return Array.Empty<FileCabinetRecord>();
+    }
+
+    public FileCabinetRecord[] FindByLastName(string lastName)
+    {
+        if (this.lastNameDictionary.TryGetValue(lastName, out var records))
+        {
+            return records.ToArray();
+        }
+
+        return Array.Empty<FileCabinetRecord>();
+    }
+
+    public FileCabinetRecord[] FindByDateOfBirth(string dateOfBirth)
+    {
+        if (DateTime.TryParse(dateOfBirth, out DateTime date))
+        {
+            if (this.dateOfBirthDictionary.TryGetValue(date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), out var records))
+            {
+                return records.ToArray();
+            }
+        }
+
+        return Array.Empty<FileCabinetRecord>();
     }
 }

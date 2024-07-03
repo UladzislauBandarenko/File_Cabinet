@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace FileCabinetApp
 {
-    public class FileCabinetService : IFileCabinetService
+    public class FileCabinetMemoryService : IFileCabinetService
     {
         private readonly List<FileCabinetRecord> records = new List<FileCabinetRecord>();
         private readonly Dictionary<string, List<FileCabinetRecord>> firstNameIndex = new Dictionary<string, List<FileCabinetRecord>>(StringComparer.OrdinalIgnoreCase);
@@ -11,7 +11,7 @@ namespace FileCabinetApp
         private readonly Dictionary<string, List<FileCabinetRecord>> dateOfBirthIndex = new Dictionary<string, List<FileCabinetRecord>>(StringComparer.OrdinalIgnoreCase);
         private readonly IRecordValidator validator;
 
-        public FileCabinetService(IRecordValidator validator)
+        public FileCabinetMemoryService(IRecordValidator validator)
         {
             this.validator = validator;
         }

@@ -4,6 +4,15 @@ namespace FileCabinetApp
 {
     public class FileCabinetFilesystemService : IFileCabinetService
     {
+        private readonly IRecordValidator validator;
+        private readonly FileStream fileStream;
+
+        public FileCabinetFilesystemService(IRecordValidator validator, FileStream fileStream)
+        {
+            this.validator = validator;
+            this.fileStream = fileStream;
+        }
+
         public int CreateRecord(PersonalInfo personalInfo)
         {
             throw new NotImplementedException();

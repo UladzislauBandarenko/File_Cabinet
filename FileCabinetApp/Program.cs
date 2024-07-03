@@ -41,6 +41,8 @@ public static class Program
     public static void Main(string[] args)
     {
         string validationRules = "default";
+        string storage = "memory";
+
         for (int i = 0; i < args.Length; i++)
         {
             if (args[i] == "--validation-rules" || args[i] == "-v")
@@ -57,13 +59,34 @@ public static class Program
                     break;
                 }
             }
+                    else if (args[i] == "--storage" || args[i] == "-s")
+            {
+                if (i + 1 < args.Length)
+                {
+                    storage = args[i + 1].ToLower();
+                    if (storage != "memory" && storage != "file")
+                    {
+                        Console.WriteLine("Invalid storage type specified. Using memory storage.");
+                        storage = "memory";
+                    }
+                }
+            }
         }
 
         IRecordValidator validator = validationRules == "default"
             ? new DefaultValidator()
             : new CustomValidator();
 
-        fileCabinetService = new FileCabinetService(validator);
+        if (storage == "file")
+        {
+            string filePath = "cabinet-records.db";
+            FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            fileCabinetService = new FileCabinetFilesystemService(validator, fileStream);
+        }
+        else
+        {
+            fileCabinetService = new FileCabinetMemoryService(validator);
+        }
 
         Console.WriteLine($"File Cabinet Application, developed by {Program.DeveloperName}");
         Console.WriteLine($"Using {validationRules} validation rules.");

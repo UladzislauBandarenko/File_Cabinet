@@ -86,7 +86,8 @@ namespace FileCabinetApp
 
         public int GetStat()
         {
-            throw new NotImplementedException();
+            long fileLength = this.fileStream.Length;
+            return (int)(fileLength / RecordSize);
         }
 
         public void EditRecord(int id, PersonalInfo personalInfo)

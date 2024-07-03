@@ -23,7 +23,7 @@ public static class Program
         new Tuple<string, Action<string>>("list", List),
         new Tuple<string, Action<string>>("edit", Edit),
         new Tuple<string, Action<string>>("find", Find),
-        new Tuple<string, Action<string>>("export csv", ExportToCsv),
+        new Tuple<string, Action<string>>("export", Export),
     };
 
     private static string[][] helpMessages = new string[][]
@@ -35,7 +35,7 @@ public static class Program
         new string[] { "list", "lists all records", "The 'list' command lists all records." },
         new string[] { "edit", "edits an existing record", "The 'edit' command edits an existing record." },
         new string[] { "find", "finds records by property", "The 'find' command finds records by property. Usage: find <property> <value>" },
-        new string[] { "export csv", "exports records to a CSV file", "The 'export csv' command exports all records to a CSV file. Usage: export csv <filename>" },
+        new string[] { "export", "exports records to a file", "The 'export' command exports all records to a file. Usage: export [csv|xml] <filename>" },
     };
 
     public static void Main(string[] args)
@@ -245,9 +245,19 @@ public static class Program
         }
     }
 
-    private static void ExportToCsv(string parameters)
+    private static void Export(string parameters)
     {
-        if (string.IsNullOrEmpty(parameters))
+        var inputs = parameters.Split(' ', 2);
+        if (inputs.Length < 2)
+        {
+            Console.WriteLine("Invalid command format. Usage: export [csv|xml] <filename>");
+            return;
+        }
+
+        var format = inputs[0].ToLower();
+        var fileName = inputs[1];
+
+        if (string.IsNullOrEmpty(fileName))
         {
             Console.WriteLine("File name is missing.");
             return;
@@ -256,9 +266,9 @@ public static class Program
         try
         {
             var snapshot = fileCabinetService.MakeSnapshot();
-            if (File.Exists(parameters))
+            if (File.Exists(fileName))
             {
-                Console.Write($"File is exist - rewrite {parameters}? [Y/n] ");
+                Console.Write($"File is exist - rewrite {fileName}? [Y/n] ");
                 var answer = Console.ReadLine();
                 if (string.IsNullOrEmpty(answer) || answer.ToUpper() != "Y")
                 {
@@ -267,13 +277,25 @@ public static class Program
                 }
             }
 
-            using (var writer = new StreamWriter(parameters))
+            using (var writer = new StreamWriter(fileName))
             {
-                var csvWriter = new FileCabinetRecordCsvWriter(writer);
-                csvWriter.Write(snapshot.Records);
+                switch (format)
+                {
+                    case "csv":
+                        var csvWriter = new FileCabinetRecordCsvWriter(writer);
+                        csvWriter.Write(snapshot.Records);
+                        break;
+                    case "xml":
+                        var xmlWriter = new FileCabinetRecordXmlWriter(writer);
+                        xmlWriter.Write(snapshot.Records);
+                        break;
+                    default:
+                        Console.WriteLine($"Unsupported export format: {format}");
+                        return;
+                }
             }
 
-            Console.WriteLine($"All records are exported to file {parameters}.");
+            Console.WriteLine($"All records are exported to file {fileName}.");
         }
         catch (Exception ex)
         {

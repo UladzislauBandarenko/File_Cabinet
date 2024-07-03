@@ -52,6 +52,7 @@ public static class Program
                         Console.WriteLine("Invalid validation rules specified. Using default rules.");
                         validationRules = "default";
                     }
+
                     break;
                 }
             }
@@ -144,12 +145,13 @@ public static class Program
 
     private static void Create(string parameters)
     {
-        string firstName = GetValidInput<string>("First name", s => !string.IsNullOrWhiteSpace(s) && s.Length >= 2 && s.Length <= 60);
-        string lastName = GetValidInput<string>("Last name", s => !string.IsNullOrWhiteSpace(s) && s.Length >= 2 && s.Length <= 60);
-        DateTime dateOfBirth = GetValidInput<DateTime>("Date of birth (mm/dd/yyyy)", s => DateTime.TryParse(s, out var date) && date >= new DateTime(1950, 1, 1) && date <= DateTime.Now);
-        short age = GetValidInput<short>("Age", s => short.TryParse(s, out var a) && a >= 0 && a <= 120);
-        decimal salary = GetValidInput<decimal>("Salary", s => decimal.TryParse(s, out var sal) && sal >= 0 && sal <= 1000000);
-        char gender = GetValidInput<char>("Gender (M/F)", s => s.Length == 1 && (s[0] == 'M' || s[0] == 'F'));
+        var firstName = ReadInput<string>("First name", ValidateFirstName, s => s);
+        var lastName = ReadInput<string>("Last name", ValidateLastName, s => s);
+        var dateOfBirth = ReadInput<DateTime>("Date of birth (mm/dd/yyyy)", ValidateDateOfBirth, DateTime.Parse);
+        var age = ReadInput<short>("Age", ValidateAge, short.Parse);
+        var salary = ReadInput<decimal>("Salary", ValidateSalary, decimal.Parse);
+        var gender = ReadInput<char>("Gender (M/F)", ValidateGender, s => s[0]);
+
         try
         {
             var personalInfo = new PersonalInfo(firstName, lastName, dateOfBirth, age, salary, gender);
@@ -163,7 +165,7 @@ public static class Program
     }
 
     private static void Edit(string parameters)
-    {
+        {
         if (!int.TryParse(parameters, out int id))
         {
             Console.WriteLine($"Invalid record id: {parameters}");
@@ -172,12 +174,12 @@ public static class Program
 
         try
         {
-            string firstName = GetValidInput<string>("First name", s => !string.IsNullOrWhiteSpace(s) && s.Length >= 2 && s.Length <= 60);
-            string lastName = GetValidInput<string>("Last name", s => !string.IsNullOrWhiteSpace(s) && s.Length >= 2 && s.Length <= 60);
-            DateTime dateOfBirth = GetValidInput<DateTime>("Date of birth (mm/dd/yyyy)", s => DateTime.TryParse(s, out var date) && date >= new DateTime(1950, 1, 1) && date <= DateTime.Now);
-            short age = GetValidInput<short>("Age", s => short.TryParse(s, out var a) && a >= 0 && a <= 120);
-            decimal salary = GetValidInput<decimal>("Salary", s => decimal.TryParse(s, out var sal) && sal >= 0 && sal <= 1000000);
-            char gender = GetValidInput<char>("Gender (M/F)", s => s.Length == 1 && (s[0] == 'M' || s[0] == 'F'));
+            var firstName = ReadInput<string>("First name", ValidateFirstName, s => s);
+            var lastName = ReadInput<string>("Last name", ValidateLastName, s => s);
+            var dateOfBirth = ReadInput<DateTime>("Date of birth (mm/dd/yyyy)", ValidateDateOfBirth, DateTime.Parse);
+            var age = ReadInput<short>("Age", ValidateAge, short.Parse);
+            var salary = ReadInput<decimal>("Salary", ValidateSalary, decimal.Parse);
+            var gender = ReadInput<char>("Gender (M/F)", ValidateGender, s => s[0]);
 
             var personalInfo = new PersonalInfo(firstName, lastName, dateOfBirth, age, salary, gender);
             Program.fileCabinetService.EditRecord(id, personalInfo);
@@ -242,16 +244,87 @@ public static class Program
         }
     }
 
-    private static T GetValidInput<T>(string prompt, Func<string, bool> validator)
+    private static T ReadInput<T>(string prompt, Func<string, Tuple<bool, string>> validator, Func<string, T> converter)
     {
         string input;
+        bool isValid;
+        string errorMessage;
+
         do
         {
             Console.Write($"{prompt}: ");
             input = Console.ReadLine();
-        }
-        while (!validator(input));
+            var validationResult = validator(input);
+            isValid = validationResult.Item1;
+            errorMessage = validationResult.Item2;
 
-        return (T)Convert.ChangeType(input, typeof(T));
+            if (!isValid)
+            {
+                Console.WriteLine($"Invalid input: {errorMessage}");
+            }
+        }
+        while (!isValid);
+
+        return converter(input);
+    }
+
+    private static Tuple<bool, string> ValidateFirstName(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input) || input.Length < 2 || input.Length > 60)
+        {
+            return new Tuple<bool, string>(false, "First name must be between 2 and 60 characters and not empty.");
+        }
+
+        return new Tuple<bool, string>(true, string.Empty);
+    }
+
+    private static Tuple<bool, string> ValidateLastName(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input) || input.Length < 2 || input.Length > 60)
+        {
+            return new Tuple<bool, string>(false, "Last name must be between 2 and 60 characters and not empty.");
+        }
+
+        return new Tuple<bool, string>(true, string.Empty);
+    }
+
+    private static Tuple<bool, string> ValidateDateOfBirth(string input)
+    {
+        if (DateTime.TryParse(input, out var date) && date >= new DateTime(1950, 1, 1) && date <= DateTime.Now)
+        {
+            return new Tuple<bool, string>(true, string.Empty);
+        }
+
+        return new Tuple<bool, string>(false, "Date of birth must be between 01/01/1950 and the current date.");
+    }
+
+    private static Tuple<bool, string> ValidateAge(string input)
+    {
+        if (short.TryParse(input, out var age) && age >= 0 && age <= 120)
+        {
+            return new Tuple<bool, string>(true, string.Empty);
+        }
+
+        return new Tuple<bool, string>(false, "Age must be between 0 and 120.");
+    }
+
+    private static Tuple<bool, string> ValidateSalary(string input)
+    {
+        if (decimal.TryParse(input, out var salary) && salary >= 0 && salary <= 1000000)
+        {
+            return new Tuple<bool, string>(true, string.Empty);
+        }
+
+        return new Tuple<bool, string>(false, "Salary must be between $0 and $1,000,000.");
+    }
+
+    private static Tuple<bool, string> ValidateGender(string input)
+    {
+        if (input.Length == 1 && (input[0] == 'M' || input[0] == 'F'))
+        {
+            return new Tuple<bool, string>(true, string.Empty);
+        }
+
+        return new Tuple<bool, string>(false, "Gender must be either 'M' or 'F'.");
     }
 }

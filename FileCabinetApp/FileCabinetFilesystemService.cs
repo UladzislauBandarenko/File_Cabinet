@@ -51,7 +51,37 @@ namespace FileCabinetApp
 
         public ReadOnlyCollection<FileCabinetRecord> GetRecords()
         {
-            throw new NotImplementedException();
+            List<FileCabinetRecord> records = new List<FileCabinetRecord>();
+
+            this.fileStream.Seek(0, SeekOrigin.Begin);
+
+            byte[] buffer = new byte[RecordSize];
+            int bytesRead;
+
+            while ((bytesRead = this.fileStream.Read(buffer, 0, RecordSize)) == RecordSize)
+            {
+                using (MemoryStream memoryStream = new MemoryStream(buffer))
+                using (BinaryReader reader = new BinaryReader(memoryStream))
+                {
+                    short status = reader.ReadInt16();
+                    if (status == 1)
+                    {
+                        FileCabinetRecord record = new FileCabinetRecord
+                        {
+                            Id = reader.ReadInt32(),
+                            FirstName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
+                            LastName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
+                            DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()),
+                            Age = reader.ReadInt16(),
+                            Salary = reader.ReadDecimal(),
+                            Gender = reader.ReadChar(),
+                        };
+                        records.Add(record);
+                    }
+                }
+            }
+
+            return new ReadOnlyCollection<FileCabinetRecord>(records);
         }
 
         public int GetStat()

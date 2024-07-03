@@ -56,9 +56,11 @@ public static class Program
             }
         }
 
-        fileCabinetService = validationRules == "default"
-            ? new FileCabinetDefaultService()
-            : new FileCabinetCustomService();
+        IRecordValidator validator = validationRules == "default"
+            ? new DefaultValidator()
+            : new CustomValidator();
+
+        fileCabinetService = new FileCabinetService(validator);
 
         Console.WriteLine($"File Cabinet Application, developed by {Program.DeveloperName}");
         Console.WriteLine($"Using {validationRules} validation rules.");

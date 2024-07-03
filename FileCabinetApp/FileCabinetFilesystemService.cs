@@ -92,7 +92,53 @@ namespace FileCabinetApp
 
         public void EditRecord(int id, PersonalInfo personalInfo)
         {
-            throw new NotImplementedException();
+            this.validator.ValidateFirstName(personalInfo.FirstName);
+            this.validator.ValidateLastName(personalInfo.LastName);
+            this.validator.ValidateDateOfBirth(personalInfo.DateOfBirth);
+            this.validator.ValidateAge(personalInfo.Age);
+            this.validator.ValidateSalary(personalInfo.Salary);
+            this.validator.ValidateGender(personalInfo.Gender);
+
+            long position = (id - 1) * RecordSize;
+            if (position >= this.fileStream.Length)
+            {
+                throw new ArgumentException($"Record with id {id} does not exist.", nameof(id));
+            }
+
+            this.fileStream.Seek(position, SeekOrigin.Begin);
+
+            byte[] buffer = new byte[RecordSize];
+            this.fileStream.Read(buffer, 0, RecordSize);
+
+            using (MemoryStream memoryStream = new MemoryStream(buffer))
+            using (BinaryReader reader = new BinaryReader(memoryStream))
+            {
+                short status = reader.ReadInt16();
+                if (status != 1)
+                {
+                    throw new ArgumentException($"Record with id {id} does not exist or has been deleted.", nameof(id));
+                }
+            }
+
+            this.fileStream.Seek(position, SeekOrigin.Begin);
+
+            using (MemoryStream memoryStream = new MemoryStream(buffer))
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write((short)1); // Status (2 bytes)
+                writer.Write(id); // Id (4 bytes)
+                writer.Write(Encoding.ASCII.GetBytes(personalInfo.FirstName.PadRight(60))); // FirstName (120 bytes)
+                writer.Write(Encoding.ASCII.GetBytes(personalInfo.LastName.PadRight(60))); // LastName (120 bytes)
+                writer.Write(personalInfo.DateOfBirth.Year); // Year (4 bytes)
+                writer.Write(personalInfo.DateOfBirth.Month); // Month (4 bytes)
+                writer.Write(personalInfo.DateOfBirth.Day); // Day (4 bytes)
+                writer.Write(personalInfo.Age); // Age (2 bytes)
+                writer.Write(personalInfo.Salary); // Salary (8 bytes)
+                writer.Write(personalInfo.Gender); // Gender (2 bytes)
+            }
+
+            this.fileStream.Write(buffer, 0, RecordSize);
+            this.fileStream.Flush();
         }
 
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)

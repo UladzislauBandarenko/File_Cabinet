@@ -9,7 +9,7 @@ public static class Program
     private const int CommandHelpIndex = 0;
     private const int DescriptionHelpIndex = 1;
     private const int ExplanationHelpIndex = 2;
-    private static FileCabinetService fileCabinetService = new FileCabinetDefaultService();
+    private static FileCabinetService fileCabinetService;
 
     private static bool isRunning = true;
 
@@ -33,11 +33,35 @@ public static class Program
         new string[] { "list", "lists all records", "The 'list' command lists all records." },
         new string[] { "edit", "edits an existing record", "The 'edit' command edits an existing record." },
         new string[] { "find", "finds records by property", "The 'find' command finds records by property. Usage: find <property> <value>" },
+        new string[] { "--validation-rules", "sets the validation rules", "The '--validation-rules' or '-v' parameter sets the validation rules. Usage: --validation-rules <default|custom>" },
     };
 
     public static void Main(string[] args)
     {
+        string validationRules = "default";
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i] == "--validation-rules" || args[i] == "-v")
+            {
+                if (i + 1 < args.Length)
+                {
+                    validationRules = args[i + 1].ToLower();
+                    if (validationRules != "default" && validationRules != "custom")
+                    {
+                        Console.WriteLine("Invalid validation rules specified. Using default rules.");
+                        validationRules = "default";
+                    }
+                    break;
+                }
+            }
+        }
+
+        fileCabinetService = validationRules == "default"
+            ? new FileCabinetDefaultService()
+            : new FileCabinetCustomService();
+
         Console.WriteLine($"File Cabinet Application, developed by {Program.DeveloperName}");
+        Console.WriteLine($"Using {validationRules} validation rules.");
         Console.WriteLine(Program.HintMessage);
         Console.WriteLine();
 

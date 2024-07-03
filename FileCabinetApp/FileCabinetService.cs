@@ -18,7 +18,7 @@ public abstract class FileCabinetService
 
     public int CreateRecord(PersonalInfo personalInfo)
     {
-        ValidatePersonalInfo(personalInfo);
+        this.ValidatePersonalInfo(personalInfo);
 
         var record = new FileCabinetRecord
         {
@@ -34,7 +34,7 @@ public abstract class FileCabinetService
         this.records.Add(record);
         AddToIndex(this.firstNameIndex, personalInfo.FirstName, record);
         AddToIndex(this.lastNameIndex, personalInfo.LastName, record);
-        AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd"), record);
+        AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), record);
 
         return record.Id;
     }
@@ -51,15 +51,15 @@ public abstract class FileCabinetService
 
     public void EditRecord(int id, PersonalInfo personalInfo)
     {
-        var record = this.records.FirstOrDefault(r => r.Id == id);
+        var record = this.records.Find(r => r.Id == id);
         if (record == null)
         {
             throw new ArgumentException($"Record with id {id} does not exist.", nameof(id));
         }
 
-        ValidatePersonalInfo(personalInfo);
+        this.ValidatePersonalInfo(personalInfo);
 
-        RemoveFromIndices(record);
+        this.RemoveFromIndices(record);
 
         record.FirstName = personalInfo.FirstName;
         record.LastName = personalInfo.LastName;
@@ -68,7 +68,7 @@ public abstract class FileCabinetService
         record.Salary = personalInfo.Salary;
         record.Gender = personalInfo.Gender;
 
-        AddToIndices(record);
+        this.AddToIndices(record);
     }
 
     public FileCabinetRecord[] FindByFirstName(string firstName)
@@ -92,27 +92,32 @@ public abstract class FileCabinetService
     }
 
     protected abstract void ValidateFirstName(string firstName);
+
     protected abstract void ValidateLastName(string lastName);
+
     protected abstract void ValidateDateOfBirth(DateTime dateOfBirth);
+
     protected abstract void ValidateAge(short age);
+
     protected abstract void ValidateSalary(decimal salary);
+
     protected abstract void ValidateGender(char gender);
 
     protected void ValidatePersonalInfo(PersonalInfo personalInfo)
     {
-        ValidateFirstName(personalInfo.FirstName);
-        ValidateLastName(personalInfo.LastName);
-        ValidateDateOfBirth(personalInfo.DateOfBirth);
-        ValidateAge(personalInfo.Age);
-        ValidateSalary(personalInfo.Salary);
-        ValidateGender(personalInfo.Gender);
+        this.ValidateFirstName(personalInfo.FirstName);
+        this.ValidateLastName(personalInfo.LastName);
+        this.ValidateDateOfBirth(personalInfo.DateOfBirth);
+        this.ValidateAge(personalInfo.Age);
+        this.ValidateSalary(personalInfo.Salary);
+        this.ValidateGender(personalInfo.Gender);
     }
 
     private void RemoveFromIndices(FileCabinetRecord record)
     {
-        RemoveFromIndex(this.firstNameIndex, record.FirstName, record);
-        RemoveFromIndex(this.lastNameIndex, record.LastName, record);
-        RemoveFromIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd"), record);
+        this.RemoveFromIndex(this.firstNameIndex, record.FirstName, record);
+        this.RemoveFromIndex(this.lastNameIndex, record.LastName, record);
+        this.RemoveFromIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd"), record);
     }
 
     private void RemoveFromIndex(Dictionary<string, List<FileCabinetRecord>> index, string key, FileCabinetRecord record)

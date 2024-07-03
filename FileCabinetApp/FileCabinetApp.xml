@@ -4,5 +4,69 @@
         <name>FileCabinetApp</name>
     </assembly>
     <members>
+        <member name="T:FileCabinetApp.PersonalInfo">
+            <summary>
+            Represents personal information about a person.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.PersonalInfo.#ctor(System.String,System.String,System.DateTime,System.Int16,System.Decimal,System.Char)">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.PersonalInfo"/> class.
+            </summary>
+            <param name="firstName">The first name.</param>
+            <param name="lastName">The last name.</param>
+            <param name="dateOfBirth">The date of birth.</param>
+            <param name="age">The age.</param>
+            <param name="salary">The salary.</param>
+            <param name="gender">The gender.</param>
+        </member>
+        <member name="P:FileCabinetApp.PersonalInfo.FirstName">
+            <summary>
+            Gets or sets the first name.
+            </summary>
+            <value>
+            The first name.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.PersonalInfo.LastName">
+            <summary>
+            Gets or sets the last name.
+            </summary>
+            <value>
+            The last name.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.PersonalInfo.DateOfBirth">
+            <summary>
+            Gets or sets the date of birth.
+            </summary>
+            <value>
+            The date of birth.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.PersonalInfo.Age">
+            <summary>
+            Gets or sets the age.
+            </summary>
+            <value>
+            The age.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.PersonalInfo.Salary">
+            <summary>
+            Gets or sets the salary.
+            </summary>
+            <value>
+            The salary.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.PersonalInfo.Gender">
+            <summary>
+            Gets or sets the gender.
+            </summary>
+            <value>
+            The gender.
+            </value>
+        </member>
     </members>
 </doc>

@@ -91,6 +91,11 @@ namespace FileCabinetApp
             return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
         }
 
+        public FileCabinetServiceSnapshot MakeSnapshot()
+        {
+            return new FileCabinetServiceSnapshot(this.GetRecords());
+        }
+
         private void ValidatePersonalInfo(PersonalInfo personalInfo)
         {
             this.validator.ValidateFirstName(personalInfo.FirstName);

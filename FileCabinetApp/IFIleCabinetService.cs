@@ -17,5 +17,7 @@ namespace FileCabinetApp
         ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName);
 
         ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth);
+
+        FileCabinetServiceSnapshot MakeSnapshot();
     }
 }

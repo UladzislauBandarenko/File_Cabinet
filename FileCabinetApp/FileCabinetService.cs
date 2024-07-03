@@ -22,33 +22,28 @@ public class FileCabinetService
     /// <summary>
     /// Creates a new record in the file cabinet.
     /// </summary>
-    /// <param name="firstName">The first name of the person.</param>
-    /// <param name="lastName">The last name of the person.</param>
-    /// <param name="dateOfBirth">The date of birth of the person.</param>
-    /// <param name="age">The age of the person.</param>
-    /// <param name="salary">The salary of the person.</param>
-    /// <param name="gender">The gender of the person ('M' or 'F').</param>
+    /// <param name="personalInfo">The personal information of the person.</param>
     /// <returns>The ID of the newly created record.</returns>
     /// <exception cref="ArgumentException">Thrown when any of the input parameters are invalid.</exception>
-    public int CreateRecord(string firstName, string lastName, DateTime dateOfBirth, short age, decimal salary, char gender)
+    public int CreateRecord(PersonalInfo personalInfo)
     {
-        ValidatePersonalInfo(firstName, lastName, dateOfBirth, age, salary, gender);
+        ValidatePersonalInfo(personalInfo);
 
         var record = new FileCabinetRecord
         {
             Id = this.records.Count + 1,
-            FirstName = firstName,
-            LastName = lastName,
-            DateOfBirth = dateOfBirth,
-            Age = age,
-            Salary = salary,
-            Gender = gender,
+            FirstName = personalInfo.FirstName,
+            LastName = personalInfo.LastName,
+            DateOfBirth = personalInfo.DateOfBirth,
+            Age = personalInfo.Age,
+            Salary = personalInfo.Salary,
+            Gender = personalInfo.Gender,
         };
 
         this.records.Add(record);
-        AddToIndex(this.firstNameIndex, firstName, record);
-        AddToIndex(this.lastNameIndex, lastName, record);
-        AddToIndex(this.dateOfBirthIndex, dateOfBirth.ToString("yyyy-MM-dd"), record);
+        AddToIndex(this.firstNameIndex, personalInfo.FirstName, record);
+        AddToIndex(this.lastNameIndex, personalInfo.LastName, record);
+        AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd"), record);
 
         return record.Id;
     }
@@ -82,7 +77,7 @@ public class FileCabinetService
     /// <param name="salary">The new salary.</param>
     /// <param name="gender">The new gender.</param>
     /// <exception cref="ArgumentException">Thrown when the record is not found or any of the input parameters are invalid.</exception>
-    public void EditRecord(int id, string firstName, string lastName, DateTime dateOfBirth, short age, decimal salary, char gender)
+    public void EditRecord(int id, PersonalInfo personalInfo)
     {
         var record = this.records.FirstOrDefault(r => r.Id == id);
         if (record == null)
@@ -90,16 +85,16 @@ public class FileCabinetService
             throw new ArgumentException($"Record with id {id} does not exist.", nameof(id));
         }
 
-        ValidatePersonalInfo(firstName, lastName, dateOfBirth, age, salary, gender);
+        ValidatePersonalInfo(personalInfo);
 
         RemoveFromIndices(record);
 
-        record.FirstName = firstName;
-        record.LastName = lastName;
-        record.DateOfBirth = dateOfBirth;
-        record.Age = age;
-        record.Salary = salary;
-        record.Gender = gender;
+        record.FirstName = personalInfo.FirstName;
+        record.LastName = personalInfo.LastName;
+        record.DateOfBirth = personalInfo.DateOfBirth;
+        record.Age = personalInfo.Age;
+        record.Salary = personalInfo.Salary;
+        record.Gender = personalInfo.Gender;
 
         AddToIndices(record);
     }
@@ -171,36 +166,36 @@ public class FileCabinetService
         return Array.Empty<FileCabinetRecord>();
     }
 
-    private static void ValidatePersonalInfo(string firstName, string lastName, DateTime dateOfBirth, short age, decimal salary, char gender)
+    private static void ValidatePersonalInfo(PersonalInfo personalInfo)
     {
-        if (string.IsNullOrWhiteSpace(firstName) || firstName.Length < MinNameLength || firstName.Length > MaxNameLength)
+        if (string.IsNullOrWhiteSpace(personalInfo.FirstName) || personalInfo.FirstName.Length < MinNameLength || personalInfo.FirstName.Length > MaxNameLength)
         {
-            throw new ArgumentException($"First name must be between {MinNameLength} and {MaxNameLength} characters and not empty.", nameof(firstName));
+            throw new ArgumentException($"First name must be between {MinNameLength} and {MaxNameLength} characters and not empty.", nameof(personalInfo.FirstName));
         }
 
-        if (string.IsNullOrWhiteSpace(lastName) || lastName.Length < MinNameLength || lastName.Length > MaxNameLength)
+        if (string.IsNullOrWhiteSpace(personalInfo.LastName) || personalInfo.LastName.Length < MinNameLength || personalInfo.LastName.Length > MaxNameLength)
         {
-            throw new ArgumentException($"Last name must be between {MinNameLength} and {MaxNameLength} characters and not empty.", nameof(lastName));
+            throw new ArgumentException($"Last name must be between {MinNameLength} and {MaxNameLength} characters and not empty.", nameof(personalInfo.LastName));
         }
 
-        if (dateOfBirth < MinDateOfBirth || dateOfBirth > DateTime.Now)
+        if (personalInfo.DateOfBirth < MinDateOfBirth || personalInfo.DateOfBirth > DateTime.Now)
         {
-            throw new ArgumentException($"Date of birth must be between {MinDateOfBirth:d} and the current date.", nameof(dateOfBirth));
+            throw new ArgumentException($"Date of birth must be between {MinDateOfBirth:d} and the current date.", nameof(personalInfo.DateOfBirth));
         }
 
-        if (age < MinAge || age > MaxAge)
+        if (personalInfo.Age < MinAge || personalInfo.Age > MaxAge)
         {
-            throw new ArgumentException($"Age must be between {MinAge} and {MaxAge}.", nameof(age));
+            throw new ArgumentException($"Age must be between {MinAge} and {MaxAge}.", nameof(personalInfo.Age));
         }
 
-        if (salary < MinSalary || salary > MaxSalary)
+        if (personalInfo.Salary < MinSalary || personalInfo.Salary > MaxSalary)
         {
-            throw new ArgumentException($"Salary must be between {MinSalary:C} and {MaxSalary:C}.", nameof(salary));
+            throw new ArgumentException($"Salary must be between {MinSalary:C} and {MaxSalary:C}.", nameof(personalInfo.Salary));
         }
 
-        if (gender != 'M' && gender != 'F')
+        if (personalInfo.Gender != 'M' && personalInfo.Gender != 'F')
         {
-            throw new ArgumentException("Gender must be either 'M' or 'F'.", nameof(gender));
+            throw new ArgumentException("Gender must be either 'M' or 'F'.", nameof(personalInfo.Gender));
         }
     }
 

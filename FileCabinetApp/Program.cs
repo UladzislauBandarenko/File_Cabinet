@@ -23,6 +23,7 @@ public static class Program
         new Tuple<string, Action<string>>("list", List),
         new Tuple<string, Action<string>>("edit", Edit),
         new Tuple<string, Action<string>>("find", Find),
+        new Tuple<string, Action<string>>("export csv", ExportToCsv),
     };
 
     private static string[][] helpMessages = new string[][]
@@ -34,7 +35,7 @@ public static class Program
         new string[] { "list", "lists all records", "The 'list' command lists all records." },
         new string[] { "edit", "edits an existing record", "The 'edit' command edits an existing record." },
         new string[] { "find", "finds records by property", "The 'find' command finds records by property. Usage: find <property> <value>" },
-        new string[] { "--validation-rules", "sets the validation rules", "The '--validation-rules' or '-v' parameter sets the validation rules. Usage: --validation-rules <default|custom>" },
+        new string[] { "export csv", "exports records to a CSV file", "The 'export csv' command exports all records to a CSV file. Usage: export csv <filename>" },
     };
 
     public static void Main(string[] args)
@@ -241,6 +242,42 @@ public static class Program
         else
         {
             Console.WriteLine("No records found.");
+        }
+    }
+
+    private static void ExportToCsv(string parameters)
+    {
+        if (string.IsNullOrEmpty(parameters))
+        {
+            Console.WriteLine("File name is missing.");
+            return;
+        }
+
+        try
+        {
+            var snapshot = fileCabinetService.MakeSnapshot();
+            if (File.Exists(parameters))
+            {
+                Console.Write($"File is exist - rewrite {parameters}? [Y/n] ");
+                var answer = Console.ReadLine();
+                if (string.IsNullOrEmpty(answer) || answer.ToUpper() != "Y")
+                {
+                    Console.WriteLine("Export canceled.");
+                    return;
+                }
+            }
+
+            using (var writer = new StreamWriter(parameters))
+            {
+                var csvWriter = new FileCabinetRecordCsvWriter(writer);
+                csvWriter.Write(snapshot.Records);
+            }
+
+            Console.WriteLine($"All records are exported to file {parameters}.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Export failed: {ex.Message}");
         }
     }
 

@@ -55,11 +55,10 @@ public static class Program
                         Console.WriteLine("Invalid validation rules specified. Using default rules.");
                         validationRules = "default";
                     }
-
-                    break;
+                    i++;
                 }
             }
-                    else if (args[i] == "--storage" || args[i] == "-s")
+            else if (args[i] == "--storage" || args[i] == "-s")
             {
                 if (i + 1 < args.Length)
                 {
@@ -69,6 +68,8 @@ public static class Program
                         Console.WriteLine("Invalid storage type specified. Using memory storage.");
                         storage = "memory";
                     }
+
+                    i++;
                 }
             }
         }
@@ -89,6 +90,7 @@ public static class Program
         }
 
         Console.WriteLine($"File Cabinet Application, developed by {Program.DeveloperName}");
+        Console.WriteLine($"Using {storage} storage.");
         Console.WriteLine($"Using {validationRules} validation rules.");
         Console.WriteLine(Program.HintMessage);
         Console.WriteLine();

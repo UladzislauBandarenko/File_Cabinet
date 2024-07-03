@@ -143,17 +143,62 @@ namespace FileCabinetApp
 
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
         {
-            throw new NotImplementedException();
+            return FindByPredicate(record => record.FirstName.Equals(firstName, StringComparison.OrdinalIgnoreCase));
+
         }
 
         public ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName)
         {
-            throw new NotImplementedException();
+            return FindByPredicate(record => record.LastName.Equals(lastName, StringComparison.OrdinalIgnoreCase));
         }
 
         public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
-            throw new NotImplementedException();
+            if (DateTime.TryParse(dateOfBirth, out DateTime date))
+            {
+                return FindByPredicate(record => record.DateOfBirth.Date == date.Date);
+            }
+
+            return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
+        }
+
+        private ReadOnlyCollection<FileCabinetRecord> FindByPredicate(Func<FileCabinetRecord, bool> predicate)
+        {
+            List<FileCabinetRecord> result = new List<FileCabinetRecord>();
+
+            this.fileStream.Seek(0, SeekOrigin.Begin);
+
+            byte[] buffer = new byte[RecordSize];
+            int bytesRead;
+
+            while ((bytesRead = this.fileStream.Read(buffer, 0, RecordSize)) == RecordSize)
+            {
+                using (MemoryStream memoryStream = new MemoryStream(buffer))
+                using (BinaryReader reader = new BinaryReader(memoryStream))
+                {
+                    short status = reader.ReadInt16();
+                    if (status == 1)
+                    {
+                        FileCabinetRecord record = new FileCabinetRecord
+                        {
+                            Id = reader.ReadInt32(),
+                            FirstName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
+                            LastName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
+                            DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()),
+                            Age = reader.ReadInt16(),
+                            Salary = reader.ReadDecimal(),
+                            Gender = reader.ReadChar(),
+                        };
+
+                        if (predicate(record))
+                        {
+                            result.Add(record);
+                        }
+                    }
+                }
+            }
+
+            return new ReadOnlyCollection<FileCabinetRecord>(result);
         }
 
         public FileCabinetServiceSnapshot MakeSnapshot()

@@ -24,6 +24,7 @@ public static class Program
         new Tuple<string, Action<string>>("edit", Edit),
         new Tuple<string, Action<string>>("find", Find),
         new Tuple<string, Action<string>>("export", Export),
+        new Tuple<string, Action<string>>("import", ImportCsv),
     };
 
     private static string[][] helpMessages = new string[][]
@@ -36,6 +37,7 @@ public static class Program
         new string[] { "edit", "edits an existing record", "The 'edit' command edits an existing record." },
         new string[] { "find", "finds records by property", "The 'find' command finds records by property. Usage: find <property> <value>" },
         new string[] { "export", "exports records to a file", "The 'export' command exports all records to a file. Usage: export [csv|xml] <filename>" },
+        new string[] { "import", "imports records from a CSV file", "The 'import csv' command imports records from a CSV file. Usage: import csv <filename>" },
     };
 
     public static void Main(string[] args)
@@ -325,6 +327,40 @@ public static class Program
         catch (Exception ex)
         {
             Console.WriteLine($"Export failed: {ex.Message}");
+        }
+    }
+
+    private static void ImportCsv(string parameters)
+    {
+        if (string.IsNullOrEmpty(parameters))
+        {
+            Console.WriteLine("File path is missing.");
+            return;
+        }
+
+        string filePath = parameters.Trim();
+
+        if (!File.Exists(filePath))
+        {
+            Console.WriteLine($"File {filePath} does not exist.");
+            return;
+        }
+
+        try
+        {
+            FileCabinetServiceSnapshot snapshot;
+            using (var reader = new StreamReader(filePath))
+            {
+                var csvReader = new FileCabinetRecordCsvReader(reader);
+                snapshot = csvReader.ReadAll();
+            }
+
+            fileCabinetService.Restore(snapshot);
+            Console.WriteLine($"All records from {filePath} were imported.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred while importing: {ex.Message}");
         }
     }
 

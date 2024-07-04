@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using FileCabinetApp.CommandHandlers;
+using FileCabinetApp.Validators;
 
 namespace FileCabinetApp;
 
@@ -71,19 +72,25 @@ public static class Program
             }
         }
 
-        IRecordValidator validator = validationRules == "default"
-            ? new DefaultValidator()
-            : new CustomValidator();
+        ValidatorBuilder validatorBuilder = new ValidatorBuilder();
+        if (validationRules == "default")
+        {
+            validatorBuilder.AddDefaultValidators();
+        }
+        else
+        {
+            validatorBuilder.AddCustomValidators();
+        }
 
         if (storage == "file")
         {
             string filePath = "cabinet-records.db";
             FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-            fileCabinetService = new FileCabinetFilesystemService(validator, fileStream);
+            fileCabinetService = new FileCabinetFilesystemService(validatorBuilder, fileStream);
         }
         else
         {
-            fileCabinetService = new FileCabinetMemoryService(validator);
+            fileCabinetService = new FileCabinetMemoryService(validatorBuilder);
         }
 
         Console.WriteLine($"File Cabinet Application, developed by {Program.DeveloperName}");

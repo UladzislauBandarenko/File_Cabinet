@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Text;
+using FileCabinetApp.Validators;
 
 namespace FileCabinetApp
 {
@@ -17,11 +18,11 @@ namespace FileCabinetApp
         /// <summary>
         /// Initializes a new instance of the <see cref="FileCabinetFilesystemService"/> class.
         /// </summary>
-        /// <param name="validator">The validator to use.</param>
+        /// <param name="validatorBuilder">The validator builder to use.</param>
         /// <param name="fileStream">The file stream to use.</param>
-        public FileCabinetFilesystemService(IRecordValidator validator, FileStream fileStream)
+        public FileCabinetFilesystemService(ValidatorBuilder validatorBuilder, FileStream fileStream)
         {
-            this.validator = validator;
+            this.validator = validatorBuilder.Build();
             this.fileStream = fileStream;
         }
 
@@ -133,12 +134,7 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public int CreateRecord(PersonalInfo personalInfo)
         {
-            this.validator.ValidateFirstName(personalInfo.FirstName);
-            this.validator.ValidateLastName(personalInfo.LastName);
-            this.validator.ValidateDateOfBirth(personalInfo.DateOfBirth);
-            this.validator.ValidateAge(personalInfo.Age);
-            this.validator.ValidateSalary(personalInfo.Salary);
-            this.validator.ValidateGender(personalInfo.Gender);
+            ValidatePersonalInfo(personalInfo);
 
             int id = (int)(this.fileStream.Length / RecordSize) + 1;
 
@@ -163,6 +159,34 @@ namespace FileCabinetApp
             this.fileStream.Flush();
 
             return id;
+        }
+
+        private void ValidatePersonalInfo(PersonalInfo personalInfo)
+        {
+            if (!this.validator.ValidateFirstName(personalInfo.FirstName, out string errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo.FirstName));
+            }
+            if (!this.validator.ValidateLastName(personalInfo.LastName, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo.LastName));
+            }
+            if (!this.validator.ValidateDateOfBirth(personalInfo.DateOfBirth, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo.DateOfBirth));
+            }
+            if (!this.validator.ValidateAge(personalInfo.Age, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo.Age));
+            }
+            if (!this.validator.ValidateSalary(personalInfo.Salary, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo.Salary));
+            }
+            if (!this.validator.ValidateGender(personalInfo.Gender, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo.Gender));
+            }
         }
 
         /// <inheritdoc/>
@@ -212,12 +236,7 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public void EditRecord(int id, PersonalInfo personalInfo)
         {
-            this.validator.ValidateFirstName(personalInfo.FirstName);
-            this.validator.ValidateLastName(personalInfo.LastName);
-            this.validator.ValidateDateOfBirth(personalInfo.DateOfBirth);
-            this.validator.ValidateAge(personalInfo.Age);
-            this.validator.ValidateSalary(personalInfo.Salary);
-            this.validator.ValidateGender(personalInfo.Gender);
+            ValidatePersonalInfo(personalInfo);
 
             long position = (id - 1) * RecordSize;
             if (position >= this.fileStream.Length)
@@ -326,7 +345,12 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public FileCabinetServiceSnapshot MakeSnapshot()
         {
-            throw new NotImplementedException();
+            return new FileCabinetServiceSnapshot(this.GetRecords(DefaultRecordPrinter));
+        }
+
+        private static string DefaultRecordPrinter(FileCabinetRecord record)
+        {
+            return $"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
         }
     }
 }

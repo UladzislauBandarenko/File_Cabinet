@@ -9,11 +9,11 @@
             Represents a service for working with the file cabinet.
             </summary>
         </member>
-        <member name="M:FileCabinetApp.FileCabinetFilesystemService.#ctor(FileCabinetApp.IRecordValidator,System.IO.FileStream)">
+        <member name="M:FileCabinetApp.FileCabinetFilesystemService.#ctor(FileCabinetApp.Validators.ValidatorBuilder,System.IO.FileStream)">
             <summary>
             Initializes a new instance of the <see cref="T:FileCabinetApp.FileCabinetFilesystemService"/> class.
             </summary>
-            <param name="validator">The validator to use.</param>
+            <param name="validatorBuilder">The validator builder to use.</param>
             <param name="fileStream">The file stream to use.</param>
         </member>
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.PurgeRecords">
@@ -51,7 +51,7 @@
             Represents a service for working with the file cabinet.
             </summary>
         </member>
-        <member name="M:FileCabinetApp.FileCabinetMemoryService.#ctor(FileCabinetApp.IRecordValidator)">
+        <member name="M:FileCabinetApp.FileCabinetMemoryService.#ctor(FileCabinetApp.Validators.ValidatorBuilder)">
             <summary>
             Initializes a new instance of the <see cref="T:FileCabinetApp.FileCabinetMemoryService"/> class.
             </summary>

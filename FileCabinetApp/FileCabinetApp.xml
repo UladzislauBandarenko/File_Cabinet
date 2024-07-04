@@ -312,6 +312,11 @@
             The gender.
             </value>
         </member>
+        <member name="T:FileCabinetApp.Program">
+            <summary>
+            The main program class.
+            </summary>
+        </member>
         <member name="M:FileCabinetApp.Program.Main(System.String[])">
             <summary>
             The main entry point of the application.

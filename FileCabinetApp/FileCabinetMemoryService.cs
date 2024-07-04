@@ -16,6 +16,29 @@ namespace FileCabinetApp
             this.validator = validator;
         }
 
+        public void Restore(FileCabinetServiceSnapshot snapshot)
+        {
+            if (snapshot == null)
+            {
+                throw new ArgumentNullException(nameof(snapshot));
+            }
+
+            // Clear existing records and indices
+            this.records.Clear();
+            this.firstNameIndex.Clear();
+            this.lastNameIndex.Clear();
+            this.dateOfBirthIndex.Clear();
+
+            // Add records from the snapshot
+            foreach (var record in snapshot.Records)
+            {
+                this.records.Add(record);
+                AddToIndex(this.firstNameIndex, record.FirstName, record);
+                AddToIndex(this.lastNameIndex, record.LastName, record);
+                AddToIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), record);
+            }
+        }
+
         public int CreateRecord(PersonalInfo personalInfo)
         {
             this.ValidatePersonalInfo(personalInfo);

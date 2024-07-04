@@ -55,4 +55,10 @@ public class FileCabinetRecord
     /// <value>The gender of the record.</value>
     [XmlElement("gender")]
     public char Gender { get; set; }
+
+    /// <summary>
+    /// Gets or sets the printed representation of the record.
+    /// </summary>
+    /// <value>The printed representation of the record.</value>
+    public string? PrintedRepresentation { get; set; }
 }

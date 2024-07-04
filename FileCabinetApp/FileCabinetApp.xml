@@ -28,7 +28,7 @@
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.CreateRecord(FileCabinetApp.PersonalInfo)">
             <inheritdoc/>
         </member>
-        <member name="M:FileCabinetApp.FileCabinetFilesystemService.GetRecords">
+        <member name="M:FileCabinetApp.FileCabinetFilesystemService.GetRecords(FileCabinetApp.RecordPrinter)">
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.GetStat">
@@ -69,7 +69,7 @@
         <member name="M:FileCabinetApp.FileCabinetMemoryService.CreateRecord(FileCabinetApp.PersonalInfo)">
             <inheritdoc/>
         </member>
-        <member name="M:FileCabinetApp.FileCabinetMemoryService.GetRecords">
+        <member name="M:FileCabinetApp.FileCabinetMemoryService.GetRecords(FileCabinetApp.RecordPrinter)">
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.FileCabinetMemoryService.GetStat">
@@ -137,39 +137,18 @@
             </summary>
             <value>The gender of the record.</value>
         </member>
-        <member name="T:FileCabinetApp.FileCabinetRecordCsvReader">
+        <member name="P:FileCabinetApp.FileCabinetRecord.PrintedRepresentation">
             <summary>
-            Represents a reader for CSV files.
+            Gets or sets the printed representation of the record.
             </summary>
+            <value>The printed representation of the record.</value>
         </member>
-        <member name="M:FileCabinetApp.FileCabinetRecordCsvReader.#ctor(System.IO.TextReader)">
+        <member name="T:FileCabinetApp.RecordPrinter">
             <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.FileCabinetRecordCsvReader"/> class.
+            Represents a delegate for printing a record.
             </summary>
-            <param name="reader">The reader to use.</param>
-        </member>
-        <member name="M:FileCabinetApp.FileCabinetRecordCsvReader.ReadAll">
-            <summary>
-            Reads all records from the reader.
-            </summary>
-            <returns>The snapshot of the records.</returns>
-        </member>
-        <member name="T:FileCabinetApp.FileCabinetRecordXmlReader">
-            <summary>
-            Represents a reader for XML files.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.FileCabinetRecordXmlReader.#ctor(System.IO.TextReader)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.FileCabinetRecordXmlReader"/> class.
-            </summary>
-            <param name="reader">The reader to use.</param>
-        </member>
-        <member name="M:FileCabinetApp.FileCabinetRecordXmlReader.ReadAll">
-            <summary>
-            Reads all records from the reader.
-            </summary>
-            <returns>The snapshot of the records.</returns>
+            <param name="record">The record to print.</param>
+            <returns>The string representation of the record.</returns>
         </member>
         <member name="T:FileCabinetApp.IFileCabinetService">
             <summary>
@@ -183,11 +162,12 @@
             <param name="personalInfo">The personal information of the record.</param>
             <returns>The id of the created record.</returns>
         </member>
-        <member name="M:FileCabinetApp.IFileCabinetService.GetRecords">
+        <member name="M:FileCabinetApp.IFileCabinetService.GetRecords(FileCabinetApp.RecordPrinter)">
             <summary>
             Gets all records from the file cabinet.
             </summary>
             <returns>The collection of records.</returns>
+            <param name="printer">The printer to use.</param>
         </member>
         <member name="M:FileCabinetApp.IFileCabinetService.GetStat">
             <summary>
@@ -322,6 +302,40 @@
             The main entry point of the application.
             </summary>
             <param name="args">The command-line arguments.</param>
+        </member>
+        <member name="T:FileCabinetApp.FileCabinetRecordCsvReader">
+            <summary>
+            Represents a reader for CSV files.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetRecordCsvReader.#ctor(System.IO.TextReader)">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.FileCabinetRecordCsvReader"/> class.
+            </summary>
+            <param name="reader">The reader to use.</param>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetRecordCsvReader.ReadAll">
+            <summary>
+            Reads all records from the reader.
+            </summary>
+            <returns>The snapshot of the records.</returns>
+        </member>
+        <member name="T:FileCabinetApp.FileCabinetRecordXmlReader">
+            <summary>
+            Represents a reader for XML files.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetRecordXmlReader.#ctor(System.IO.TextReader)">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.FileCabinetRecordXmlReader"/> class.
+            </summary>
+            <param name="reader">The reader to use.</param>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetRecordXmlReader.ReadAll">
+            <summary>
+            Reads all records from the reader.
+            </summary>
+            <returns>The snapshot of the records.</returns>
         </member>
     </members>
 </doc>

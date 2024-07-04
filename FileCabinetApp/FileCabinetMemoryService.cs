@@ -96,9 +96,19 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> GetRecords()
+        public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
-            return new ReadOnlyCollection<FileCabinetRecord>(this.records);
+            return new ReadOnlyCollection<FileCabinetRecord>(this.records.Select(r => new FileCabinetRecord
+            {
+                Id = r.Id,
+                FirstName = r.FirstName,
+                LastName = r.LastName,
+                DateOfBirth = r.DateOfBirth,
+                Age = r.Age,
+                Salary = r.Salary,
+                Gender = r.Gender,
+                PrintedRepresentation = printer(r),
+            }).ToList());
         }
 
         /// <inheritdoc/>
@@ -156,7 +166,12 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public FileCabinetServiceSnapshot MakeSnapshot()
         {
-            return new FileCabinetServiceSnapshot(this.GetRecords());
+            return new FileCabinetServiceSnapshot(this.GetRecords(DefaultRecordPrinter));
+        }
+
+        private static string DefaultRecordPrinter(FileCabinetRecord record)
+        {
+            return $"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
         }
 
         private void ValidatePersonalInfo(PersonalInfo personalInfo)

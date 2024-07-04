@@ -3,6 +3,13 @@ using System.Collections.ObjectModel;
 namespace FileCabinetApp
 {
     /// <summary>
+    /// Represents a delegate for printing a record.
+    /// </summary>
+    /// <param name="record">The record to print.</param>
+    /// <returns>The string representation of the record.</returns>
+    public delegate string RecordPrinter(FileCabinetRecord record);
+
+    /// <summary>
     /// Represents a service for working with the file cabinet.
     /// </summary>
     public interface IFileCabinetService
@@ -18,7 +25,8 @@ namespace FileCabinetApp
         /// Gets all records from the file cabinet.
         /// </summary>
         /// <returns>The collection of records.</returns>
-        ReadOnlyCollection<FileCabinetRecord> GetRecords();
+        /// <param name="printer">The printer to use.</param>
+        ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer);
 
         /// <summary>
         /// Gets the number of records in the file cabinet.

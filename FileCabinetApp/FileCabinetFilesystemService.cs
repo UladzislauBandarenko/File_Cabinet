@@ -166,7 +166,7 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> GetRecords()
+        public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             var records = new List<FileCabinetRecord>();
             byte[] buffer = new byte[RecordSize];
@@ -194,6 +194,7 @@ namespace FileCabinetApp
                         Salary = reader.ReadDecimal(),
                         Gender = reader.ReadChar(),
                     };
+                    record.PrintedRepresentation = printer(record);
                     records.Add(record);
                 }
             }

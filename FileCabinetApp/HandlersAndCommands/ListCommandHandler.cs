@@ -13,7 +13,7 @@ namespace FileCabinetApp.CommandHandlers
         {
             if (command.Equals("list", StringComparison.InvariantCultureIgnoreCase))
             {
-                var records = this.fileCabinetService.GetRecords();
+                var records = this.fileCabinetService.GetRecords(DefaultRecordPrinter);
 
                 foreach (var record in records)
                 {
@@ -24,6 +24,11 @@ namespace FileCabinetApp.CommandHandlers
             {
                 this.nextHandler.Handle(command);
             }
+        }
+
+        private static string DefaultRecordPrinter(FileCabinetRecord record)
+        {
+            return $"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
         }
     }
 }

@@ -3,6 +3,9 @@ using System.Globalization;
 
 namespace FileCabinetApp
 {
+    /// <summary>
+    /// Represents a service for working with the file cabinet.
+    /// </summary>
     public class FileCabinetMemoryService : IFileCabinetService
     {
         private readonly List<FileCabinetRecord> records = new List<FileCabinetRecord>();
@@ -11,11 +14,40 @@ namespace FileCabinetApp
         private readonly Dictionary<string, List<FileCabinetRecord>> dateOfBirthIndex = new Dictionary<string, List<FileCabinetRecord>>(StringComparer.OrdinalIgnoreCase);
         private readonly IRecordValidator validator;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileCabinetMemoryService"/> class.
+        /// </summary>
+        /// <param name="validator">The validator to use for validating personal information.</param>
         public FileCabinetMemoryService(IRecordValidator validator)
         {
             this.validator = validator;
         }
 
+        /// <inheritdoc/>
+        public int PurgeRecords()
+        {
+            return 0; // No purging needed for memory storage
+        }
+
+        /// <inheritdoc/>
+        public bool RemoveRecord(int id)
+        {
+            var record = this.records.Find(r => r.Id == id);
+            if (record == null)
+            {
+                return false;
+            }
+
+            this.records.Remove(record);
+
+            this.firstNameIndex.Remove(record.FirstName.ToUpperInvariant());
+            this.lastNameIndex.Remove(record.LastName.ToUpperInvariant());
+            this.dateOfBirthIndex.Remove(record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+
+            return true;
+        }
+
+        /// <inheritdoc/>
         public void Restore(FileCabinetServiceSnapshot snapshot)
         {
             if (snapshot == null)
@@ -39,6 +71,7 @@ namespace FileCabinetApp
             }
         }
 
+        /// <inheritdoc/>
         public int CreateRecord(PersonalInfo personalInfo)
         {
             this.ValidatePersonalInfo(personalInfo);
@@ -62,16 +95,19 @@ namespace FileCabinetApp
             return record.Id;
         }
 
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords()
         {
             return new ReadOnlyCollection<FileCabinetRecord>(this.records);
         }
 
+        /// <inheritdoc/>
         public int GetStat()
         {
             return this.records.Count;
         }
 
+        /// <inheritdoc/>
         public void EditRecord(int id, PersonalInfo personalInfo)
         {
             var record = this.records.Find(r => r.Id == id);
@@ -94,16 +130,19 @@ namespace FileCabinetApp
             this.AddToIndices(record);
         }
 
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
         {
             return new ReadOnlyCollection<FileCabinetRecord>(FindByIndex(this.firstNameIndex, firstName));
         }
 
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName)
         {
             return new ReadOnlyCollection<FileCabinetRecord>(FindByIndex(this.lastNameIndex, lastName));
         }
 
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
             if (DateTime.TryParse(dateOfBirth, out DateTime date))
@@ -114,6 +153,7 @@ namespace FileCabinetApp
             return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
         }
 
+        /// <inheritdoc/>
         public FileCabinetServiceSnapshot MakeSnapshot()
         {
             return new FileCabinetServiceSnapshot(this.GetRecords());

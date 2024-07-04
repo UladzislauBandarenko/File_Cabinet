@@ -25,6 +25,8 @@ public static class Program
         new Tuple<string, Action<string>>("find", Find),
         new Tuple<string, Action<string>>("export", Export),
         new Tuple<string, Action<string>>("import", Import),
+        new Tuple<string, Action<string>>("remove", Remove),
+        new Tuple<string, Action<string>>("purge", Purge),
     };
 
     private static string[][] helpMessages = new string[][]
@@ -38,6 +40,8 @@ public static class Program
         new string[] { "find", "finds records by property", "The 'find' command finds records by property. Usage: find <property> <value>" },
         new string[] { "export", "exports records to a file", "The 'export' command exports all records to a file. Usage: export [csv|xml] <filename>" },
         new string[] { "import", "imports records from a file", "The 'import' command imports records from a file. Usage: import [csv|xml] <filename>" },
+        new string[] { "remove", "removes a record", "The 'remove' command removes a record. Usage: remove <id>" },
+        new string[] { "purge", "purges all records", "The 'purge' command purges all records." },
     };
 
     /// <summary>
@@ -391,6 +395,45 @@ public static class Program
         catch (Exception ex)
         {
             Console.WriteLine($"An error occurred while importing: {ex.Message}");
+        }
+    }
+
+    private static void Remove(string parameters)
+    {
+        if (!int.TryParse(parameters, out int id))
+        {
+            Console.WriteLine($"Invalid record id: {parameters}");
+            return;
+        }
+
+        try
+        {
+            if (fileCabinetService.RemoveRecord(id))
+            {
+                Console.WriteLine($"Record #{id} is removed.");
+            }
+            else
+            {
+                Console.WriteLine($"Record #{id} doesn't exist.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred while removing the record: {ex.Message}");
+        }
+    }
+
+    private static void Purge(string parameters)
+    {
+        if (fileCabinetService is FileCabinetFilesystemService filesystemService)
+        {
+            int totalRecords = filesystemService.GetStat();
+            int purgedRecords = filesystemService.PurgeRecords();
+            Console.WriteLine($"Data file processing is completed: {purgedRecords} of {totalRecords} records were purged.");
+        }
+        else
+        {
+            Console.WriteLine("Purge command is available only for file storage.");
         }
     }
 

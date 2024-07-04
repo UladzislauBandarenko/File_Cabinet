@@ -3,18 +3,63 @@ using System.Text;
 
 namespace FileCabinetApp
 {
+    /// <summary>
+    /// Represents a service for working with the file cabinet.
+    /// </summary>
     public class FileCabinetFilesystemService : IFileCabinetService
     {
         private const int RecordSize = 278;
         private readonly IRecordValidator validator;
         private readonly FileStream fileStream;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileCabinetFilesystemService"/> class.
+        /// </summary>
+        /// <param name="validator">The validator to use.</param>
+        /// <param name="fileStream">The file stream to use.</param>
         public FileCabinetFilesystemService(IRecordValidator validator, FileStream fileStream)
         {
             this.validator = validator;
             this.fileStream = fileStream;
         }
 
+        /// <inheritdoc/>
+        public void Restore(FileCabinetServiceSnapshot snapshot)
+        {
+            if (snapshot == null)
+            {
+                throw new ArgumentNullException(nameof(snapshot));
+            }
+
+            // Clear existing records
+            this.fileStream.SetLength(0);
+
+            // Write records from the snapshot
+            foreach (var record in snapshot.Records)
+            {
+                byte[] buffer = new byte[RecordSize];
+                using (MemoryStream memoryStream = new MemoryStream(buffer))
+                using (BinaryWriter writer = new BinaryWriter(memoryStream))
+                {
+                    writer.Write((short)1); // Status (2 bytes)
+                    writer.Write(record.Id); // Id (4 bytes)
+                    writer.Write(Encoding.ASCII.GetBytes(record.FirstName.PadRight(60))); // FirstName (120 bytes)
+                    writer.Write(Encoding.ASCII.GetBytes(record.LastName.PadRight(60))); // LastName (120 bytes)
+                    writer.Write(record.DateOfBirth.Year); // Year (4 bytes)
+                    writer.Write(record.DateOfBirth.Month); // Month (4 bytes)
+                    writer.Write(record.DateOfBirth.Day); // Day (4 bytes)
+                    writer.Write(record.Age); // Age (2 bytes)
+                    writer.Write(record.Salary); // Salary (8 bytes)
+                    writer.Write(record.Gender); // Gender (2 bytes)
+                }
+
+                this.fileStream.Write(buffer, 0, RecordSize);
+            }
+
+            this.fileStream.Flush();
+        }
+
+        /// <inheritdoc/>
         public int CreateRecord(PersonalInfo personalInfo)
         {
             this.validator.ValidateFirstName(personalInfo.FirstName);
@@ -49,6 +94,7 @@ namespace FileCabinetApp
             return id;
         }
 
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords()
         {
             List<FileCabinetRecord> records = new List<FileCabinetRecord>();
@@ -84,12 +130,14 @@ namespace FileCabinetApp
             return new ReadOnlyCollection<FileCabinetRecord>(records);
         }
 
+        /// <inheritdoc/>
         public int GetStat()
         {
             long fileLength = this.fileStream.Length;
             return (int)(fileLength / RecordSize);
         }
 
+        /// <inheritdoc/>
         public void EditRecord(int id, PersonalInfo personalInfo)
         {
             this.validator.ValidateFirstName(personalInfo.FirstName);
@@ -141,6 +189,7 @@ namespace FileCabinetApp
             this.fileStream.Flush();
         }
 
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
         {
             return FindByPredicate(record => record.FirstName.Equals(firstName, StringComparison.OrdinalIgnoreCase));
@@ -152,6 +201,7 @@ namespace FileCabinetApp
             return FindByPredicate(record => record.LastName.Equals(lastName, StringComparison.OrdinalIgnoreCase));
         }
 
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
             if (DateTime.TryParse(dateOfBirth, out DateTime date))
@@ -201,6 +251,7 @@ namespace FileCabinetApp
             return new ReadOnlyCollection<FileCabinetRecord>(result);
         }
 
+        /// <inheritdoc/>
         public FileCabinetServiceSnapshot MakeSnapshot()
         {
             throw new NotImplementedException();

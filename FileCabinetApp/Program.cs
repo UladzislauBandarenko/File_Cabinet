@@ -24,7 +24,7 @@ public static class Program
         new Tuple<string, Action<string>>("edit", Edit),
         new Tuple<string, Action<string>>("find", Find),
         new Tuple<string, Action<string>>("export", Export),
-        new Tuple<string, Action<string>>("import", ImportCsv),
+        new Tuple<string, Action<string>>("import", Import),
     };
 
     private static string[][] helpMessages = new string[][]
@@ -37,9 +37,13 @@ public static class Program
         new string[] { "edit", "edits an existing record", "The 'edit' command edits an existing record." },
         new string[] { "find", "finds records by property", "The 'find' command finds records by property. Usage: find <property> <value>" },
         new string[] { "export", "exports records to a file", "The 'export' command exports all records to a file. Usage: export [csv|xml] <filename>" },
-        new string[] { "import", "imports records from a CSV file", "The 'import csv' command imports records from a CSV file. Usage: import csv <filename>" },
+        new string[] { "import", "imports records from a file", "The 'import' command imports records from a file. Usage: import [csv|xml] <filename>" },
     };
 
+    /// <summary>
+    /// The main entry point of the application.
+    /// </summary>
+    /// <param name="args">The command-line arguments.</param>
     public static void Main(string[] args)
     {
         string validationRules = "default";
@@ -51,12 +55,13 @@ public static class Program
             {
                 if (i + 1 < args.Length)
                 {
-                    validationRules = args[i + 1].ToLower();
+                    validationRules = args[i + 1].ToLowerInvariant();
                     if (validationRules != "default" && validationRules != "custom")
                     {
                         Console.WriteLine("Invalid validation rules specified. Using default rules.");
                         validationRules = "default";
                     }
+
                     i++;
                 }
             }
@@ -64,7 +69,7 @@ public static class Program
             {
                 if (i + 1 < args.Length)
                 {
-                    storage = args[i + 1].ToLower();
+                    storage = args[i + 1].ToLowerInvariant();
                     if (storage != "memory" && storage != "file")
                     {
                         Console.WriteLine("Invalid storage type specified. Using memory storage.");
@@ -111,7 +116,7 @@ public static class Program
                 continue;
             }
 
-            var index = Array.FindIndex(commands, 0, commands.Length, i => i.Item1.Equals(command, StringComparison.InvariantCultureIgnoreCase));
+            var index = Array.FindIndex(commands, 0, commands.Length, i => i.Item1.Equals(command, StringComparison.OrdinalIgnoreCase));
             if (index >= 0)
             {
                 const int parametersIndex = 1;
@@ -238,7 +243,7 @@ public static class Program
             return;
         }
 
-        var property = inputs[0].ToLower();
+        var property = inputs[0].ToLowerInvariant();
         var value = inputs[1].Trim('"');
 
         ReadOnlyCollection<FileCabinetRecord> records;
@@ -281,7 +286,7 @@ public static class Program
             return;
         }
 
-        var format = inputs[0].ToLower();
+        var format = inputs[0].ToLowerInvariant();
         var fileName = inputs[1];
 
         if (string.IsNullOrEmpty(fileName))
@@ -297,7 +302,7 @@ public static class Program
             {
                 Console.Write($"File is exist - rewrite {fileName}? [Y/n] ");
                 var answer = Console.ReadLine();
-                if (string.IsNullOrEmpty(answer) || answer.ToUpper() != "Y")
+                if (string.IsNullOrEmpty(answer) || answer.ToUpperInvariant() != "Y")
                 {
                     Console.WriteLine("Export canceled.");
                     return;
@@ -330,33 +335,58 @@ public static class Program
         }
     }
 
-    private static void ImportCsv(string parameters)
+    private static void Import(string parameters)
     {
-        if (string.IsNullOrEmpty(parameters))
+        var inputs = parameters.Split(' ', 2);
+        if (inputs.Length < 2)
         {
-            Console.WriteLine("File path is missing.");
+            Console.WriteLine("Invalid command format. Usage: import [csv|xml] <filename>");
             return;
         }
 
-        string filePath = parameters.Trim();
+        var format = inputs[0].ToLowerInvariant();
+        var fileName = inputs[1];
 
-        if (!File.Exists(filePath))
+        if (string.IsNullOrEmpty(fileName))
         {
-            Console.WriteLine($"File {filePath} does not exist.");
+            Console.WriteLine("File name is missing.");
+            return;
+        }
+
+        if (!File.Exists(fileName))
+        {
+            Console.WriteLine($"File {fileName} does not exist.");
             return;
         }
 
         try
         {
             FileCabinetServiceSnapshot snapshot;
-            using (var reader = new StreamReader(filePath))
+            switch (format)
             {
-                var csvReader = new FileCabinetRecordCsvReader(reader);
-                snapshot = csvReader.ReadAll();
+                case "csv":
+                    using (var reader = new StreamReader(fileName))
+                    {
+                        var csvReader = new FileCabinetRecordCsvReader(reader);
+                        snapshot = csvReader.ReadAll();
+                    }
+
+                    break;
+                case "xml":
+                    using (var reader = new StreamReader(fileName))
+                    {
+                        var xmlReader = new FileCabinetRecordXmlReader(reader);
+                        snapshot = xmlReader.ReadAll();
+                    }
+
+                    break;
+                default:
+                    Console.WriteLine($"Unsupported import format: {format}");
+                    return;
             }
 
             fileCabinetService.Restore(snapshot);
-            Console.WriteLine($"All records from {filePath} were imported.");
+            Console.WriteLine($"All records from {fileName} were imported.");
         }
         catch (Exception ex)
         {

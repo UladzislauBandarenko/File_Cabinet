@@ -9,6 +9,8 @@ namespace FileCabinetApp
     public class FileCabinetFilesystemService : IFileCabinetService
     {
         private const int RecordSize = 278;
+        private const short ActiveStatus = 1;
+        private const short InactiveStatus = 0;
         private readonly IRecordValidator validator;
         private readonly FileStream fileStream;
 
@@ -41,7 +43,7 @@ namespace FileCabinetApp
                 using (BinaryReader reader = new BinaryReader(memoryStream))
                 {
                     short status = reader.ReadInt16();
-                    if ((status & 0x0002) == 0) // Not deleted
+                    if (status == ActiveStatus)
                     {
                         if (position != newPosition)
                         {
@@ -66,31 +68,30 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public bool RemoveRecord(int id)
         {
-            long position = (id - 1) * RecordSize;
-            if (position >= this.fileStream.Length)
+            long fileLength = this.fileStream.Length;
+            for (long position = 0; position < fileLength; position += RecordSize)
             {
-                return false;
+                this.fileStream.Seek(position, SeekOrigin.Begin);
+                byte[] buffer = new byte[6]; // Read status (2 bytes) and id (4 bytes)
+                this.fileStream.Read(buffer, 0, 6);
+
+                short status = BitConverter.ToInt16(buffer, 0);
+                int recordId = BitConverter.ToInt32(buffer, 2);
+
+                if (status == ActiveStatus && recordId == id)
+                {
+                    status = InactiveStatus;
+                    buffer = BitConverter.GetBytes(status);
+
+                    this.fileStream.Seek(position, SeekOrigin.Begin);
+                    this.fileStream.Write(buffer, 0, 2);
+                    this.fileStream.Flush();
+
+                    return true;
+                }
             }
 
-            this.fileStream.Seek(position, SeekOrigin.Begin);
-
-            byte[] buffer = new byte[2];
-            this.fileStream.Read(buffer, 0, 2);
-
-            short status = BitConverter.ToInt16(buffer, 0);
-            if ((status & 0x0002) != 0) // Check if already deleted
-            {
-                return false;
-            }
-
-            status |= 0x0002; // Set IsDeleted bit
-            buffer = BitConverter.GetBytes(status);
-
-            this.fileStream.Seek(position, SeekOrigin.Begin);
-            this.fileStream.Write(buffer, 0, 2);
-            this.fileStream.Flush();
-
-            return true;
+            return false;
         }
 
         /// <inheritdoc/>
@@ -145,7 +146,7 @@ namespace FileCabinetApp
             using (MemoryStream memoryStream = new MemoryStream(record))
             using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
-                writer.Write((short)1); // Status (2 bytes)
+                writer.Write(ActiveStatus); // Status (2 bytes)
                 writer.Write(id); // Id (4 bytes)
                 writer.Write(Encoding.ASCII.GetBytes(personalInfo.FirstName.PadRight(60))); // FirstName (120 bytes)
                 writer.Write(Encoding.ASCII.GetBytes(personalInfo.LastName.PadRight(60))); // LastName (120 bytes)
@@ -167,32 +168,33 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords()
         {
-            List<FileCabinetRecord> records = new List<FileCabinetRecord>();
+            var records = new List<FileCabinetRecord>();
+            byte[] buffer = new byte[RecordSize];
 
             this.fileStream.Seek(0, SeekOrigin.Begin);
 
-            byte[] buffer = new byte[RecordSize];
-
             while (this.fileStream.Read(buffer, 0, RecordSize) == RecordSize)
             {
-                using (MemoryStream memoryStream = new MemoryStream(buffer))
-                using (BinaryReader reader = new BinaryReader(memoryStream))
+                using (var memoryStream = new MemoryStream(buffer))
+                using (var reader = new BinaryReader(memoryStream))
                 {
                     short status = reader.ReadInt16();
-                    if ((status & 0x0002) == 0) // Check if not deleted
+                    if (status != ActiveStatus)
                     {
-                        FileCabinetRecord record = new FileCabinetRecord
-                        {
-                            Id = reader.ReadInt32(),
-                            FirstName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
-                            LastName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
-                            DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), 0, 0, 0, DateTimeKind.Utc),
-                            Age = reader.ReadInt16(),
-                            Salary = reader.ReadDecimal(),
-                            Gender = reader.ReadChar(),
-                        };
-                        records.Add(record);
+                        continue;
                     }
+
+                    var record = new FileCabinetRecord
+                    {
+                        Id = reader.ReadInt32(),
+                        FirstName = new string(reader.ReadChars(60)).TrimEnd('\0'),
+                        LastName = new string(reader.ReadChars(60)).TrimEnd('\0'),
+                        DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), 0, 0, 0, 0, DateTimeKind.Local),
+                        Age = reader.ReadInt16(),
+                        Salary = reader.ReadDecimal(),
+                        Gender = reader.ReadChar(),
+                    };
+                    records.Add(record);
                 }
             }
 
@@ -231,7 +233,7 @@ namespace FileCabinetApp
             using (BinaryReader reader = new BinaryReader(memoryStream))
             {
                 short status = reader.ReadInt16();
-                if (status != 1)
+                if (status != ActiveStatus)
                 {
                     throw new ArgumentException($"Record with id {id} does not exist or has been deleted.", nameof(id));
                 }
@@ -296,7 +298,7 @@ namespace FileCabinetApp
                 using (BinaryReader reader = new BinaryReader(memoryStream))
                 {
                     short status = reader.ReadInt16();
-                    if (status == 1)
+                    if (status == ActiveStatus)
                     {
                         FileCabinetRecord record = new FileCabinetRecord
                         {

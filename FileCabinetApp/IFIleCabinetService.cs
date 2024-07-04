@@ -72,5 +72,11 @@ namespace FileCabinetApp
         /// <param name="id">The id of the record to remove.</param>
         /// <returns>True if the record is removed, false otherwise.</returns>
         bool RemoveRecord(int id);
+
+        /// <summary>
+        /// Purges deleted records from the file cabinet.
+        /// </summary>
+        /// <returns>The number of purged records.</returns>
+        int PurgeRecords();
     }
 }

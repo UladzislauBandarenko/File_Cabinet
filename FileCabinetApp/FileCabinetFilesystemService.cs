@@ -24,6 +24,46 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public int PurgeRecords()
+        {
+            int purgedRecords = 0;
+            long newPosition = 0;
+            long fileLength = this.fileStream.Length;
+
+            byte[] buffer = new byte[RecordSize];
+
+            for (long position = 0; position < fileLength; position += RecordSize)
+            {
+                this.fileStream.Seek(position, SeekOrigin.Begin);
+                this.fileStream.Read(buffer, 0, RecordSize);
+
+                using (MemoryStream memoryStream = new MemoryStream(buffer))
+                using (BinaryReader reader = new BinaryReader(memoryStream))
+                {
+                    short status = reader.ReadInt16();
+                    if ((status & 0x0002) == 0) // Not deleted
+                    {
+                        if (position != newPosition)
+                        {
+                            this.fileStream.Seek(newPosition, SeekOrigin.Begin);
+                            this.fileStream.Write(buffer, 0, RecordSize);
+                        }
+                        newPosition += RecordSize;
+                    }
+                    else
+                    {
+                        purgedRecords++;
+                    }
+                }
+            }
+
+            this.fileStream.SetLength(newPosition);
+            this.fileStream.Flush();
+
+            return purgedRecords;
+        }
+
+        /// <inheritdoc/>
         public bool RemoveRecord(int id)
         {
             long position = (id - 1) * RecordSize;

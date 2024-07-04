@@ -24,6 +24,12 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public int PurgeRecords()
+        {
+            return 0; // No purging needed for memory storage
+        }
+
+        /// <inheritdoc/>
         public bool RemoveRecord(int id)
         {
             var record = this.records.Find(r => r.Id == id);

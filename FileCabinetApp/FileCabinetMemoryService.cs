@@ -77,9 +77,15 @@ namespace FileCabinetApp
         {
             this.ValidatePersonalInfo(personalInfo);
 
+            int nextId = 1;
+            if (this.records.Any())
+            {
+                nextId = this.records.Max(r => r.Id) + 1;
+            }
+
             var record = new FileCabinetRecord
             {
-                Id = this.records.Count + 1,
+                Id = nextId,
                 FirstName = personalInfo.FirstName,
                 LastName = personalInfo.LastName,
                 DateOfBirth = personalInfo.DateOfBirth,

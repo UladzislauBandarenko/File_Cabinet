@@ -22,6 +22,11 @@ namespace FileCabinetApp
         /// <param name="fileStream">The file stream to use.</param>
         public FileCabinetFilesystemService(ValidatorBuilder validatorBuilder, FileStream fileStream)
         {
+            if (validatorBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(validatorBuilder));
+            }
+
             this.validator = validatorBuilder.Build();
             this.fileStream = fileStream;
         }
@@ -40,8 +45,8 @@ namespace FileCabinetApp
                 this.fileStream.Seek(position, SeekOrigin.Begin);
                 this.fileStream.Read(buffer, 0, RecordSize);
 
-                using (MemoryStream memoryStream = new MemoryStream(buffer))
-                using (BinaryReader reader = new BinaryReader(memoryStream))
+                using MemoryStream memoryStream = new MemoryStream(buffer);
+                using BinaryReader reader = new BinaryReader(memoryStream);
                 {
                     short status = reader.ReadInt16();
                     if (status == ActiveStatus)
@@ -51,6 +56,7 @@ namespace FileCabinetApp
                             this.fileStream.Seek(newPosition, SeekOrigin.Begin);
                             this.fileStream.Write(buffer, 0, RecordSize);
                         }
+
                         newPosition += RecordSize;
                     }
                     else
@@ -109,6 +115,11 @@ namespace FileCabinetApp
             // Write records from the snapshot
             foreach (var record in snapshot.Records)
             {
+                if (record.FirstName is null || record.LastName is null)
+                {
+                    throw new ArgumentNullException(nameof(snapshot));
+                }
+
                 byte[] buffer = new byte[RecordSize];
                 using (MemoryStream memoryStream = new MemoryStream(buffer))
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
@@ -134,16 +145,37 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public int CreateRecord(PersonalInfo personalInfo)
         {
-            ValidatePersonalInfo(personalInfo);
+            if (personalInfo is null)
+            {
+                throw new ArgumentNullException(nameof(personalInfo));
+            }
 
-            int id = (int)(this.fileStream.Length / RecordSize) + 1;
+            this.ValidatePersonalInfo(personalInfo);
+
+            int nextId = 1;
+            long fileLength = this.fileStream.Length;
+            byte[] buffer = new byte[6]; // Read status (2 bytes) and id (4 bytes)
+
+            for (long position = 0; position < fileLength; position += RecordSize)
+            {
+                this.fileStream.Seek(position, SeekOrigin.Begin);
+                this.fileStream.Read(buffer, 0, 6);
+
+                short status = BitConverter.ToInt16(buffer, 0);
+                int recordId = BitConverter.ToInt32(buffer, 2);
+
+                if (status == ActiveStatus && recordId >= nextId)
+                {
+                    nextId = recordId + 1;
+                }
+            }
 
             byte[] record = new byte[RecordSize];
             using (MemoryStream memoryStream = new MemoryStream(record))
             using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
                 writer.Write(ActiveStatus); // Status (2 bytes)
-                writer.Write(id); // Id (4 bytes)
+                writer.Write(nextId); // Id (4 bytes)
                 writer.Write(Encoding.ASCII.GetBytes(personalInfo.FirstName.PadRight(60))); // FirstName (120 bytes)
                 writer.Write(Encoding.ASCII.GetBytes(personalInfo.LastName.PadRight(60))); // LastName (120 bytes)
                 writer.Write(personalInfo.DateOfBirth.Year); // Year (4 bytes)
@@ -158,35 +190,7 @@ namespace FileCabinetApp
             this.fileStream.Write(record, 0, RecordSize);
             this.fileStream.Flush();
 
-            return id;
-        }
-
-        private void ValidatePersonalInfo(PersonalInfo personalInfo)
-        {
-            if (!this.validator.ValidateFirstName(personalInfo.FirstName, out string errorMessage))
-            {
-                throw new ArgumentException(errorMessage, nameof(personalInfo.FirstName));
-            }
-            if (!this.validator.ValidateLastName(personalInfo.LastName, out errorMessage))
-            {
-                throw new ArgumentException(errorMessage, nameof(personalInfo.LastName));
-            }
-            if (!this.validator.ValidateDateOfBirth(personalInfo.DateOfBirth, out errorMessage))
-            {
-                throw new ArgumentException(errorMessage, nameof(personalInfo.DateOfBirth));
-            }
-            if (!this.validator.ValidateAge(personalInfo.Age, out errorMessage))
-            {
-                throw new ArgumentException(errorMessage, nameof(personalInfo.Age));
-            }
-            if (!this.validator.ValidateSalary(personalInfo.Salary, out errorMessage))
-            {
-                throw new ArgumentException(errorMessage, nameof(personalInfo.Salary));
-            }
-            if (!this.validator.ValidateGender(personalInfo.Gender, out errorMessage))
-            {
-                throw new ArgumentException(errorMessage, nameof(personalInfo.Gender));
-            }
+            return nextId;
         }
 
         /// <inheritdoc/>
@@ -236,7 +240,7 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public void EditRecord(int id, PersonalInfo personalInfo)
         {
-            ValidatePersonalInfo(personalInfo);
+            this.ValidatePersonalInfo(personalInfo);
 
             long position = (id - 1) * RecordSize;
             if (position >= this.fileStream.Length)
@@ -283,24 +287,57 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
         {
-            return FindByPredicate(record => record.FirstName.Equals(firstName, StringComparison.OrdinalIgnoreCase));
+            return this.FindByPredicate(record => record.FirstName.Equals(firstName, StringComparison.OrdinalIgnoreCase));
 
         }
 
         public ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName)
         {
-            return FindByPredicate(record => record.LastName.Equals(lastName, StringComparison.OrdinalIgnoreCase));
+            return this.FindByPredicate(record => record.LastName.Equals(lastName, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
-            if (DateTime.TryParse(dateOfBirth, out DateTime date))
+            if (DateTime.TryParse(dateOfBirth, out DateTime date, CultureInfo.InvariantCulture))
             {
-                return FindByPredicate(record => record.DateOfBirth.Date == date.Date);
+                return this.FindByPredicate(record => record.DateOfBirth.Date == date.Date);
             }
 
             return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
+        }
+
+        private void ValidatePersonalInfo(PersonalInfo personalInfo)
+        {
+            if (!this.validator.ValidateFirstName(personalInfo.FirstName, out string errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateLastName(personalInfo.LastName, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateDateOfBirth(personalInfo.DateOfBirth, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateAge(personalInfo.Age, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateSalary(personalInfo.Salary, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateGender(personalInfo.Gender, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
         }
 
         private ReadOnlyCollection<FileCabinetRecord> FindByPredicate(Func<FileCabinetRecord, bool> predicate)

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using FileCabinetApp.Validators;
 
 namespace FileCabinetApp
 {
@@ -17,10 +18,15 @@ namespace FileCabinetApp
         /// <summary>
         /// Initializes a new instance of the <see cref="FileCabinetMemoryService"/> class.
         /// </summary>
-        /// <param name="validator">The validator to use for validating personal information.</param>
-        public FileCabinetMemoryService(IRecordValidator validator)
+        /// <param name="validatorBuilder">The validator to use for validating personal information.</param>
+        public FileCabinetMemoryService(ValidatorBuilder validatorBuilder)
         {
-            this.validator = validator;
+            if (validatorBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(validatorBuilder));
+            }
+
+            this.validator = validatorBuilder.Build();
         }
 
         /// <inheritdoc/>
@@ -40,9 +46,7 @@ namespace FileCabinetApp
 
             this.records.Remove(record);
 
-            this.firstNameIndex.Remove(record.FirstName.ToUpperInvariant());
-            this.lastNameIndex.Remove(record.LastName.ToUpperInvariant());
-            this.dateOfBirthIndex.Remove(record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            this.RemoveFromIndices(record);
 
             return true;
         }
@@ -64,6 +68,11 @@ namespace FileCabinetApp
             // Add records from the snapshot
             foreach (var record in snapshot.Records)
             {
+                if (record.FirstName is null || record.LastName is null)
+                {
+                    throw new ArgumentNullException(nameof(snapshot));
+                }
+
                 this.records.Add(record);
                 AddToIndex(this.firstNameIndex, record.FirstName, record);
                 AddToIndex(this.lastNameIndex, record.LastName, record);
@@ -74,11 +83,22 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public int CreateRecord(PersonalInfo personalInfo)
         {
+            if (personalInfo is null)
+            {
+                throw new ArgumentNullException(nameof(personalInfo));
+            }
+
             this.ValidatePersonalInfo(personalInfo);
+
+            int nextId = 1;
+            if (this.records.Any())
+            {
+                nextId = this.records.Max(r => r.Id) + 1;
+            }
 
             var record = new FileCabinetRecord
             {
-                Id = this.records.Count + 1,
+                Id = nextId,
                 FirstName = personalInfo.FirstName,
                 LastName = personalInfo.LastName,
                 DateOfBirth = personalInfo.DateOfBirth,
@@ -96,9 +116,19 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> GetRecords()
+        public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
-            return new ReadOnlyCollection<FileCabinetRecord>(this.records);
+            return new ReadOnlyCollection<FileCabinetRecord>(this.records.Select(r => new FileCabinetRecord
+            {
+                Id = r.Id,
+                FirstName = r.FirstName,
+                LastName = r.LastName,
+                DateOfBirth = r.DateOfBirth,
+                Age = r.Age,
+                Salary = r.Salary,
+                Gender = r.Gender,
+                PrintedRepresentation = printer(r),
+            }).ToList());
         }
 
         /// <inheritdoc/>
@@ -110,6 +140,11 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public void EditRecord(int id, PersonalInfo personalInfo)
         {
+            if (personalInfo is null)
+            {
+                throw new ArgumentNullException(nameof(personalInfo));
+            }
+
             var record = this.records.Find(r => r.Id == id);
             if (record == null)
             {
@@ -145,7 +180,7 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
-            if (DateTime.TryParse(dateOfBirth, out DateTime date))
+            if (DateTime.TryParse(dateOfBirth, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
             {
                 return new ReadOnlyCollection<FileCabinetRecord>(FindByIndex(this.dateOfBirthIndex, date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)));
             }
@@ -156,39 +191,20 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public FileCabinetServiceSnapshot MakeSnapshot()
         {
-            return new FileCabinetServiceSnapshot(this.GetRecords());
+            return new FileCabinetServiceSnapshot(this.GetRecords(DefaultRecordPrinter));
         }
 
-        private void ValidatePersonalInfo(PersonalInfo personalInfo)
+        private static string DefaultRecordPrinter(FileCabinetRecord record)
         {
-            this.validator.ValidateFirstName(personalInfo.FirstName);
-            this.validator.ValidateLastName(personalInfo.LastName);
-            this.validator.ValidateDateOfBirth(personalInfo.DateOfBirth);
-            this.validator.ValidateAge(personalInfo.Age);
-            this.validator.ValidateSalary(personalInfo.Salary);
-            this.validator.ValidateGender(personalInfo.Gender);
+            return $"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
         }
 
-        private void RemoveFromIndices(FileCabinetRecord record)
-        {
-            this.RemoveFromIndex(this.firstNameIndex, record.FirstName, record);
-            this.RemoveFromIndex(this.lastNameIndex, record.LastName, record);
-            this.RemoveFromIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd"), record);
-        }
-
-        private void RemoveFromIndex(Dictionary<string, List<FileCabinetRecord>> index, string key, FileCabinetRecord record)
+        private static void RemoveFromIndex(Dictionary<string, List<FileCabinetRecord>> index, string key, FileCabinetRecord record)
         {
             if (index.ContainsKey(key))
             {
                 index[key].Remove(record);
             }
-        }
-
-        private void AddToIndices(FileCabinetRecord record)
-        {
-            AddToIndex(this.firstNameIndex, record.FirstName, record);
-            AddToIndex(this.lastNameIndex, record.LastName, record);
-            AddToIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd"), record);
         }
 
         private static List<FileCabinetRecord> FindByIndex(Dictionary<string, List<FileCabinetRecord>> index, string key)
@@ -209,6 +225,63 @@ namespace FileCabinetApp
             }
 
             index[key].Add(record);
+        }
+
+        private void ValidatePersonalInfo(PersonalInfo personalInfo)
+        {
+            if (!this.validator.ValidateFirstName(personalInfo.FirstName, out string errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateLastName(personalInfo.LastName, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateDateOfBirth(personalInfo.DateOfBirth, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateAge(personalInfo.Age, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateSalary(personalInfo.Salary, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateGender(personalInfo.Gender, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+        }
+
+        private void RemoveFromIndices(FileCabinetRecord record)
+        {
+            if (record.FirstName is null || record.LastName is null)
+            {
+                throw new ArgumentNullException(nameof(record));
+            }
+
+            RemoveFromIndex(this.firstNameIndex, record.FirstName, record);
+            RemoveFromIndex(this.lastNameIndex, record.LastName, record);
+            RemoveFromIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), record);
+        }
+
+        private void AddToIndices(FileCabinetRecord record)
+        {
+            if (record.FirstName is null || record.LastName is null)
+            {
+                throw new ArgumentNullException(nameof(record));
+            }
+
+            AddToIndex(this.firstNameIndex, record.FirstName, record);
+            AddToIndex(this.lastNameIndex, record.LastName, record);
+            AddToIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), record);
         }
     }
 }

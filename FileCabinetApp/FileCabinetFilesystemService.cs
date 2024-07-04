@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Text;
+using FileCabinetApp.Validators;
 
 namespace FileCabinetApp
 {
@@ -17,11 +19,16 @@ namespace FileCabinetApp
         /// <summary>
         /// Initializes a new instance of the <see cref="FileCabinetFilesystemService"/> class.
         /// </summary>
-        /// <param name="validator">The validator to use.</param>
+        /// <param name="validatorBuilder">The validator builder to use.</param>
         /// <param name="fileStream">The file stream to use.</param>
-        public FileCabinetFilesystemService(IRecordValidator validator, FileStream fileStream)
+        public FileCabinetFilesystemService(ValidatorBuilder validatorBuilder, FileStream fileStream)
         {
-            this.validator = validator;
+            if (validatorBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(validatorBuilder));
+            }
+
+            this.validator = validatorBuilder.Build();
             this.fileStream = fileStream;
         }
 
@@ -39,8 +46,8 @@ namespace FileCabinetApp
                 this.fileStream.Seek(position, SeekOrigin.Begin);
                 this.fileStream.Read(buffer, 0, RecordSize);
 
-                using (MemoryStream memoryStream = new MemoryStream(buffer))
-                using (BinaryReader reader = new BinaryReader(memoryStream))
+                using MemoryStream memoryStream = new MemoryStream(buffer);
+                using BinaryReader reader = new BinaryReader(memoryStream);
                 {
                     short status = reader.ReadInt16();
                     if (status == ActiveStatus)
@@ -50,6 +57,7 @@ namespace FileCabinetApp
                             this.fileStream.Seek(newPosition, SeekOrigin.Begin);
                             this.fileStream.Write(buffer, 0, RecordSize);
                         }
+
                         newPosition += RecordSize;
                     }
                     else
@@ -108,6 +116,11 @@ namespace FileCabinetApp
             // Write records from the snapshot
             foreach (var record in snapshot.Records)
             {
+                if (record.FirstName is null || record.LastName is null)
+                {
+                    throw new ArgumentNullException(nameof(snapshot));
+                }
+
                 byte[] buffer = new byte[RecordSize];
                 using (MemoryStream memoryStream = new MemoryStream(buffer))
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
@@ -133,21 +146,37 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public int CreateRecord(PersonalInfo personalInfo)
         {
-            this.validator.ValidateFirstName(personalInfo.FirstName);
-            this.validator.ValidateLastName(personalInfo.LastName);
-            this.validator.ValidateDateOfBirth(personalInfo.DateOfBirth);
-            this.validator.ValidateAge(personalInfo.Age);
-            this.validator.ValidateSalary(personalInfo.Salary);
-            this.validator.ValidateGender(personalInfo.Gender);
+            if (personalInfo is null)
+            {
+                throw new ArgumentNullException(nameof(personalInfo));
+            }
 
-            int id = (int)(this.fileStream.Length / RecordSize) + 1;
+            this.ValidatePersonalInfo(personalInfo);
+
+            int nextId = 1;
+            long fileLength = this.fileStream.Length;
+            byte[] buffer = new byte[6]; // Read status (2 bytes) and id (4 bytes)
+
+            for (long position = 0; position < fileLength; position += RecordSize)
+            {
+                this.fileStream.Seek(position, SeekOrigin.Begin);
+                this.fileStream.Read(buffer, 0, 6);
+
+                short status = BitConverter.ToInt16(buffer, 0);
+                int recordId = BitConverter.ToInt32(buffer, 2);
+
+                if (status == ActiveStatus && recordId >= nextId)
+                {
+                    nextId = recordId + 1;
+                }
+            }
 
             byte[] record = new byte[RecordSize];
             using (MemoryStream memoryStream = new MemoryStream(record))
             using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
                 writer.Write(ActiveStatus); // Status (2 bytes)
-                writer.Write(id); // Id (4 bytes)
+                writer.Write(nextId); // Id (4 bytes)
                 writer.Write(Encoding.ASCII.GetBytes(personalInfo.FirstName.PadRight(60))); // FirstName (120 bytes)
                 writer.Write(Encoding.ASCII.GetBytes(personalInfo.LastName.PadRight(60))); // LastName (120 bytes)
                 writer.Write(personalInfo.DateOfBirth.Year); // Year (4 bytes)
@@ -162,12 +191,17 @@ namespace FileCabinetApp
             this.fileStream.Write(record, 0, RecordSize);
             this.fileStream.Flush();
 
-            return id;
+            return nextId;
         }
 
         /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> GetRecords()
+        public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
+            if (printer is null)
+            {
+                throw new ArgumentNullException(nameof(printer));
+            }
+
             var records = new List<FileCabinetRecord>();
             byte[] buffer = new byte[RecordSize];
 
@@ -194,6 +228,7 @@ namespace FileCabinetApp
                         Salary = reader.ReadDecimal(),
                         Gender = reader.ReadChar(),
                     };
+                    record.PrintedRepresentation = printer(record);
                     records.Add(record);
                 }
             }
@@ -211,12 +246,12 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public void EditRecord(int id, PersonalInfo personalInfo)
         {
-            this.validator.ValidateFirstName(personalInfo.FirstName);
-            this.validator.ValidateLastName(personalInfo.LastName);
-            this.validator.ValidateDateOfBirth(personalInfo.DateOfBirth);
-            this.validator.ValidateAge(personalInfo.Age);
-            this.validator.ValidateSalary(personalInfo.Salary);
-            this.validator.ValidateGender(personalInfo.Gender);
+            if (personalInfo is null)
+            {
+                throw new ArgumentNullException(nameof(personalInfo));
+            }
+
+            this.ValidatePersonalInfo(personalInfo);
 
             long position = (id - 1) * RecordSize;
             if (position >= this.fileStream.Length)
@@ -263,24 +298,68 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
         {
-            return FindByPredicate(record => record.FirstName.Equals(firstName, StringComparison.OrdinalIgnoreCase));
-
+            return this.FindByPredicate(record => record.FirstName?.Equals(firstName, StringComparison.OrdinalIgnoreCase) ?? false);
         }
 
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName)
         {
-            return FindByPredicate(record => record.LastName.Equals(lastName, StringComparison.OrdinalIgnoreCase));
+            return this.FindByPredicate(record => record.LastName?.Equals(lastName, StringComparison.OrdinalIgnoreCase) ?? false);
         }
 
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
-            if (DateTime.TryParse(dateOfBirth, out DateTime date))
+            if (DateTime.TryParse(dateOfBirth, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
             {
-                return FindByPredicate(record => record.DateOfBirth.Date == date.Date);
+                return this.FindByPredicate(record => record.DateOfBirth.Date == date.Date);
             }
 
             return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
+        }
+
+        /// <inheritdoc/>
+        public FileCabinetServiceSnapshot MakeSnapshot()
+        {
+            return new FileCabinetServiceSnapshot(this.GetRecords(DefaultRecordPrinter));
+        }
+
+        private static string DefaultRecordPrinter(FileCabinetRecord record)
+        {
+            return $"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
+        }
+
+        private void ValidatePersonalInfo(PersonalInfo personalInfo)
+        {
+            if (!this.validator.ValidateFirstName(personalInfo.FirstName, out string errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateLastName(personalInfo.LastName, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateDateOfBirth(personalInfo.DateOfBirth, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateAge(personalInfo.Age, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateSalary(personalInfo.Salary, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
+
+            if (!this.validator.ValidateGender(personalInfo.Gender, out errorMessage))
+            {
+                throw new ArgumentException(errorMessage, nameof(personalInfo));
+            }
         }
 
         private ReadOnlyCollection<FileCabinetRecord> FindByPredicate(Func<FileCabinetRecord, bool> predicate)
@@ -290,9 +369,7 @@ namespace FileCabinetApp
             this.fileStream.Seek(0, SeekOrigin.Begin);
 
             byte[] buffer = new byte[RecordSize];
-            int bytesRead;
-
-            while ((bytesRead = this.fileStream.Read(buffer, 0, RecordSize)) == RecordSize)
+            while (this.fileStream.Read(buffer, 0, RecordSize) == RecordSize)
             {
                 using (MemoryStream memoryStream = new MemoryStream(buffer))
                 using (BinaryReader reader = new BinaryReader(memoryStream))
@@ -305,7 +382,7 @@ namespace FileCabinetApp
                             Id = reader.ReadInt32(),
                             FirstName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
                             LastName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
-                            DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()),
+                            DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), 0, 0, 0, 0, DateTimeKind.Local),
                             Age = reader.ReadInt16(),
                             Salary = reader.ReadDecimal(),
                             Gender = reader.ReadChar(),
@@ -320,12 +397,6 @@ namespace FileCabinetApp
             }
 
             return new ReadOnlyCollection<FileCabinetRecord>(result);
-        }
-
-        /// <inheritdoc/>
-        public FileCabinetServiceSnapshot MakeSnapshot()
-        {
-            throw new NotImplementedException();
         }
     }
 }

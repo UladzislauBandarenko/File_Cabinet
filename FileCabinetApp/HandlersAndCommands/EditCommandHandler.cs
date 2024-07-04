@@ -2,17 +2,30 @@ using FileCabinetApp.Utilities;
 
 namespace FileCabinetApp.CommandHandlers
 {
+    /// <summary>
+    /// Edit command handler.
+    /// </summary>
     public class EditCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EditCommandHandler"/> class.
+        /// </summary>
+        /// <param name="fileCabinetService">The file cabinet service.</param>
         public EditCommandHandler(IFileCabinetService fileCabinetService)
         {
             this.fileCabinetService = fileCabinetService;
         }
 
+        /// <inheritdoc/>
         public override void Handle(string command)
         {
+            if (command == null)
+            {
+                throw new ArgumentNullException(nameof(command));
+            }
+
             if (command.StartsWith("edit", StringComparison.InvariantCultureIgnoreCase))
             {
                 string[] parts = command.Split(' ', 2);

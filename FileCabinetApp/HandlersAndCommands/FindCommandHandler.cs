@@ -3,17 +3,30 @@ using System.Collections.ObjectModel;
 
 namespace FileCabinetApp.CommandHandlers
 {
+    /// <summary>
+    /// Find command handler.
+    /// </summary>
     public class FindCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindCommandHandler"/> class.
+        /// </summary>
+        /// <param name="fileCabinetService">The file cabinet service.</param>
         public FindCommandHandler(IFileCabinetService fileCabinetService)
         {
             this.fileCabinetService = fileCabinetService;
         }
 
+        /// <inheritdoc/>
         public override void Handle(string command)
         {
+            if (command == null)
+            {
+                throw new ArgumentNullException(nameof(command));
+            }
+
             if (command.StartsWith("find", StringComparison.InvariantCultureIgnoreCase))
             {
                 var inputs = command.Split(' ', 3);

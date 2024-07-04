@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using FileCabinetApp.CommandHandlers;
+using FileCabinetApp.HandlersAndCommands;
 using FileCabinetApp.Validators;
 
 namespace FileCabinetApp;
@@ -12,24 +13,25 @@ public static class Program
 {
     private const string DeveloperName = "Uladzislau Bandarenko";
     private const string HintMessage = "Enter your command, or enter 'help' to get help.";
+
+    private static readonly IReadOnlyCollection<HelpMessage> HelpMessages = new[]
+    {
+        new HelpMessage("help", "prints the help screen", "The 'help' command prints the help screen."),
+        new HelpMessage("exit", "exits the application", "The 'exit' command exits the application."),
+        new HelpMessage("stat", "prints the number of records", "The 'stat' command prints the number of records."),
+        new HelpMessage("create", "creates a new record", "The 'create' command creates a new record."),
+        new HelpMessage("list", "lists all records", "The 'list' command lists all records."),
+        new HelpMessage("edit", "edits an existing record", "The 'edit' command edits an existing record."),
+        new HelpMessage("find", "finds records by property", "The 'find' command finds records by property. Usage: find <property> <value>"),
+        new HelpMessage("export", "exports records to a file", "The 'export' command exports all records to a file. Usage: export [csv|xml] <filename>"),
+        new HelpMessage("import", "imports records from a file", "The 'import' command imports records from a file. Usage: import [csv|xml] <filename>"),
+        new HelpMessage("remove", "removes a record", "The 'remove' command removes a record. Usage: remove <id>"),
+        new HelpMessage("purge", "purges all records", "The 'purge' command purges all records."),
+    };
+
     private static IFileCabinetService? fileCabinetService;
 
     private static bool isRunning = true;
-
-    private static string[][] helpMessages = new string[][]
-    {
-        new string[] { "help", "prints the help screen", "The 'help' command prints the help screen." },
-        new string[] { "exit", "exits the application", "The 'exit' command exits the application." },
-        new string[] { "stat", "prints the number of records", "The 'stat' command prints the number of records." },
-        new string[] { "create", "creates a new record", "The 'create' command creates a new record." },
-        new string[] { "list", "lists all records", "The 'list' command lists all records." },
-        new string[] { "edit", "edits an existing record", "The 'edit' command edits an existing record." },
-        new string[] { "find", "finds records by property", "The 'find' command finds records by property. Usage: find <property> <value>" },
-        new string[] { "export", "exports records to a file", "The 'export' command exports all records to a file. Usage: export [csv|xml] <filename>" },
-        new string[] { "import", "imports records from a file", "The 'import' command imports records from a file. Usage: import [csv|xml] <filename>" },
-        new string[] { "remove", "removes a record", "The 'remove' command removes a record. Usage: remove <id>" },
-        new string[] { "purge", "purges all records", "The 'purge' command purges all records." },
-    };
 
     /// <summary>
     /// The main entry point of the application.
@@ -37,10 +39,16 @@ public static class Program
     /// <param name="args">The command-line arguments.</param>
     public static void Main(string[] args)
     {
+        if (args == null)
+        {
+            throw new ArgumentNullException(nameof(args));
+        }
+
         string validationRules = "default";
         string storage = "memory";
 
-        for (int i = 0; i < args.Length; i++)
+        int i = 0;
+        while (i < args.Length)
         {
             if (args[i] == "--validation-rules" || args[i] == "-v")
             {
@@ -53,23 +61,24 @@ public static class Program
                         validationRules = "default";
                     }
 
-                    i++;
+                    i += 2;
+                    continue;
                 }
             }
-            else if (args[i] == "--storage" || args[i] == "-s")
+            else if (args[i] == "--storage" || (args[i] == "-s" && i + 1 < args.Length))
             {
-                if (i + 1 < args.Length)
+                storage = args[i + 1].ToLowerInvariant();
+                if (storage != "memory" && storage != "file")
                 {
-                    storage = args[i + 1].ToLowerInvariant();
-                    if (storage != "memory" && storage != "file")
-                    {
-                        Console.WriteLine("Invalid storage type specified. Using memory storage.");
-                        storage = "memory";
-                    }
-
-                    i++;
+                    Console.WriteLine("Invalid storage type specified. Using memory storage.");
+                    storage = "memory";
                 }
+
+                i += 2;
+                continue;
             }
+
+            i++;
         }
 
         ValidatorBuilder validatorBuilder = new ValidatorBuilder();
@@ -119,7 +128,12 @@ public static class Program
 
     private static ICommandHandler CreateCommandHandlers()
     {
-        var helpHandler = new HelpCommandHandler(helpMessages);
+        if (fileCabinetService == null)
+        {
+            throw new InvalidOperationException("FileCabinetService is not initialized.");
+        }
+
+        var helpHandler = new HelpCommandHandler(HelpMessages);
         var exitHandler = new ExitCommandHandler(isRunning => Program.isRunning = isRunning);
         var statHandler = new StatCommandHandler(fileCabinetService);
         var createHandler = new CreateCommandHandler(fileCabinetService);

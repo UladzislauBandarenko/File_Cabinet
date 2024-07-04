@@ -1,17 +1,30 @@
 namespace FileCabinetApp.CommandHandlers
 {
+    /// <summary>
+    /// List command handler.
+    /// </summary>
     public class ListCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ListCommandHandler"/> class.
+        /// </summary>
+        /// <param name="fileCabinetService">The file cabinet service.</param>
         public ListCommandHandler(IFileCabinetService fileCabinetService)
         {
             this.fileCabinetService = fileCabinetService;
         }
 
+        /// <inheritdoc/>
         public override void Handle(string command)
         {
-            if (command.Equals("list", StringComparison.InvariantCultureIgnoreCase))
+            if (command is null)
+            {
+                throw new ArgumentNullException(nameof(command));
+            }
+
+            if (command.Equals("list", StringComparison.OrdinalIgnoreCase))
             {
                 var records = this.fileCabinetService.GetRecords(DefaultRecordPrinter);
 

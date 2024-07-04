@@ -1,16 +1,29 @@
 namespace FileCabinetApp.CommandHandlers
 {
+    /// <summary>
+    /// Export command handler.
+    /// </summary>
     public class ExportCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExportCommandHandler"/> class.
+        /// </summary>
+        /// <param name="fileCabinetService">The file cabinet service.</param>
         public ExportCommandHandler(IFileCabinetService fileCabinetService)
         {
             this.fileCabinetService = fileCabinetService;
         }
 
+        /// <inheritdoc/>
         public override void Handle(string command)
         {
+            if (command == null)
+            {
+                throw new ArgumentNullException(nameof(command));
+            }
+
             if (command.StartsWith("export", StringComparison.InvariantCultureIgnoreCase))
             {
                 var inputs = command.Split(' ', 3);
@@ -25,7 +38,7 @@ namespace FileCabinetApp.CommandHandlers
 
                 try
                 {
-                    var snapshot = fileCabinetService.MakeSnapshot();
+                    var snapshot = this.fileCabinetService.MakeSnapshot();
                     if (File.Exists(fileName))
                     {
                         Console.Write($"File is exist - rewrite {fileName}? [Y/n] ");

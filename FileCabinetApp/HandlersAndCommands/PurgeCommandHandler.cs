@@ -1,19 +1,32 @@
 namespace FileCabinetApp.CommandHandlers
 {
+    /// <summary>
+    /// Purge command handler.
+    /// </summary>
     public class PurgeCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PurgeCommandHandler"/> class.
+        /// </summary>
+        /// <param name="fileCabinetService">The file cabinet service.</param>
         public PurgeCommandHandler(IFileCabinetService fileCabinetService)
         {
             this.fileCabinetService = fileCabinetService;
         }
 
+        /// <inheritdoc/>
         public override void Handle(string command)
         {
-            if (command.Equals("purge", StringComparison.InvariantCultureIgnoreCase))
+            if (command is null)
             {
-                if (fileCabinetService is FileCabinetFilesystemService filesystemService)
+                throw new ArgumentNullException(nameof(command));
+            }
+
+            if (command.Equals("purge", StringComparison.OrdinalIgnoreCase))
+            {
+                if (this.fileCabinetService is FileCabinetFilesystemService filesystemService)
                 {
                     int totalRecords = filesystemService.GetStat();
                     int purgedRecords = filesystemService.PurgeRecords();

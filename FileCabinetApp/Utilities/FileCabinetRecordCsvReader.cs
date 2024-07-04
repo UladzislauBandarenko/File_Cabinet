@@ -33,7 +33,7 @@ namespace FileCabinetApp
             // Skip the header
             this.reader.ReadLine();
 
-            while ((line = this.reader.ReadLine()) != null)
+            while ((line = this.reader.ReadLine() !) != null)
             {
                 var values = line.Split(',');
                 if (values.Length != 7)

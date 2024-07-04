@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Xml;
 using System.Xml.Serialization;
 
 namespace FileCabinetApp
@@ -26,7 +27,8 @@ namespace FileCabinetApp
         public FileCabinetServiceSnapshot ReadAll()
         {
             var serializer = new XmlSerializer(typeof(List<FileCabinetRecord>), new XmlRootAttribute("records"));
-            var records = (List<FileCabinetRecord>)serializer.Deserialize(this.reader);
+            using var xmlReader = XmlReader.Create(this.reader, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
+            var records = (List<FileCabinetRecord>?)serializer.Deserialize(xmlReader) ?? new List<FileCabinetRecord>();
             return new FileCabinetServiceSnapshot(new ReadOnlyCollection<FileCabinetRecord>(records));
         }
     }

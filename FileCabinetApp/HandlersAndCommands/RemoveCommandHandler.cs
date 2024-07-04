@@ -1,17 +1,30 @@
 namespace FileCabinetApp.CommandHandlers
 {
+    /// <summary>
+    /// Remove command handler.
+    /// </summary>
     public class RemoveCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RemoveCommandHandler"/> class.
+        /// </summary>
+        /// <param name="fileCabinetService">The file cabinet service.</param>
         public RemoveCommandHandler(IFileCabinetService fileCabinetService)
         {
             this.fileCabinetService = fileCabinetService;
         }
 
+        /// <inheritdoc/>
         public override void Handle(string command)
         {
-            if (command.StartsWith("remove", StringComparison.InvariantCultureIgnoreCase))
+            if (command is null)
+            {
+                throw new ArgumentNullException(nameof(command));
+            }
+
+            if (command.StartsWith("remove", StringComparison.OrdinalIgnoreCase))
             {
                 var inputs = command.Split(' ', 2);
                 if (inputs.Length < 2 || !int.TryParse(inputs[1], out int id))
@@ -22,7 +35,7 @@ namespace FileCabinetApp.CommandHandlers
 
                 try
                 {
-                    if (fileCabinetService.RemoveRecord(id))
+                    if (this.fileCabinetService.RemoveRecord(id))
                     {
                         Console.WriteLine($"Record #{id} is removed.");
                     }

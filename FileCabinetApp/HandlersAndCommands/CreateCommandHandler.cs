@@ -2,18 +2,31 @@ using FileCabinetApp.Utilities;
 
 namespace FileCabinetApp.CommandHandlers
 {
+    /// <summary>
+    /// Create command handler.
+    /// </summary>
     public class CreateCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateCommandHandler"/> class.
+        /// </summary>
+        /// <param name="fileCabinetService">The file cabinet service.</param>
         public CreateCommandHandler(IFileCabinetService fileCabinetService)
         {
             this.fileCabinetService = fileCabinetService;
         }
 
+        /// <inheritdoc/>
         public override void Handle(string command)
         {
-            if (command.Equals("create", StringComparison.InvariantCultureIgnoreCase))
+            if (command == null)
+            {
+                throw new ArgumentNullException(nameof(command));
+            }
+
+            if (command.Equals("create", StringComparison.OrdinalIgnoreCase))
             {
                 var firstName = InputReader.ReadInput<string>("First name", RecordValidator.ValidateFirstName, s => s);
                 var lastName = InputReader.ReadInput<string>("Last name", RecordValidator.ValidateLastName, s => s);

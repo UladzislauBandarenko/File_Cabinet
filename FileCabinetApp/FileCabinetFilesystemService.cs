@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Text;
 using FileCabinetApp.Validators;
 
@@ -196,6 +197,11 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
+            if (printer is null)
+            {
+                throw new ArgumentNullException(nameof(printer));
+            }
+
             var records = new List<FileCabinetRecord>();
             byte[] buffer = new byte[RecordSize];
 
@@ -240,6 +246,11 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public void EditRecord(int id, PersonalInfo personalInfo)
         {
+            if (personalInfo is null)
+            {
+                throw new ArgumentNullException(nameof(personalInfo));
+            }
+
             this.ValidatePersonalInfo(personalInfo);
 
             long position = (id - 1) * RecordSize;
@@ -287,24 +298,35 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
         {
-            return this.FindByPredicate(record => record.FirstName.Equals(firstName, StringComparison.OrdinalIgnoreCase));
-
+            return this.FindByPredicate(record => record.FirstName?.Equals(firstName, StringComparison.OrdinalIgnoreCase) ?? false);
         }
 
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName)
         {
-            return this.FindByPredicate(record => record.LastName.Equals(lastName, StringComparison.OrdinalIgnoreCase));
+            return this.FindByPredicate(record => record.LastName?.Equals(lastName, StringComparison.OrdinalIgnoreCase) ?? false);
         }
 
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
-            if (DateTime.TryParse(dateOfBirth, out DateTime date, CultureInfo.InvariantCulture))
+            if (DateTime.TryParse(dateOfBirth, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
             {
                 return this.FindByPredicate(record => record.DateOfBirth.Date == date.Date);
             }
 
             return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
+        }
+
+        /// <inheritdoc/>
+        public FileCabinetServiceSnapshot MakeSnapshot()
+        {
+            return new FileCabinetServiceSnapshot(this.GetRecords(DefaultRecordPrinter));
+        }
+
+        private static string DefaultRecordPrinter(FileCabinetRecord record)
+        {
+            return $"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
         }
 
         private void ValidatePersonalInfo(PersonalInfo personalInfo)
@@ -347,9 +369,7 @@ namespace FileCabinetApp
             this.fileStream.Seek(0, SeekOrigin.Begin);
 
             byte[] buffer = new byte[RecordSize];
-            int bytesRead;
-
-            while ((bytesRead = this.fileStream.Read(buffer, 0, RecordSize)) == RecordSize)
+            while (this.fileStream.Read(buffer, 0, RecordSize) == RecordSize)
             {
                 using (MemoryStream memoryStream = new MemoryStream(buffer))
                 using (BinaryReader reader = new BinaryReader(memoryStream))
@@ -362,7 +382,7 @@ namespace FileCabinetApp
                             Id = reader.ReadInt32(),
                             FirstName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
                             LastName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
-                            DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()),
+                            DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), 0, 0, 0, 0, DateTimeKind.Local),
                             Age = reader.ReadInt16(),
                             Salary = reader.ReadDecimal(),
                             Gender = reader.ReadChar(),
@@ -377,17 +397,6 @@ namespace FileCabinetApp
             }
 
             return new ReadOnlyCollection<FileCabinetRecord>(result);
-        }
-
-        /// <inheritdoc/>
-        public FileCabinetServiceSnapshot MakeSnapshot()
-        {
-            return new FileCabinetServiceSnapshot(this.GetRecords(DefaultRecordPrinter));
-        }
-
-        private static string DefaultRecordPrinter(FileCabinetRecord record)
-        {
-            return $"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
         }
     }
 }

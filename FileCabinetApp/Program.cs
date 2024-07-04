@@ -25,6 +25,7 @@ public static class Program
         new Tuple<string, Action<string>>("find", Find),
         new Tuple<string, Action<string>>("export", Export),
         new Tuple<string, Action<string>>("import", Import),
+        new Tuple<string, Action<string>>("remove", Remove),
     };
 
     private static string[][] helpMessages = new string[][]
@@ -391,6 +392,31 @@ public static class Program
         catch (Exception ex)
         {
             Console.WriteLine($"An error occurred while importing: {ex.Message}");
+        }
+    }
+
+    private static void Remove(string parameters)
+    {
+        if (!int.TryParse(parameters, out int id))
+        {
+            Console.WriteLine($"Invalid record id: {parameters}");
+            return;
+        }
+
+        try
+        {
+            if (fileCabinetService.RemoveRecord(id))
+            {
+                Console.WriteLine($"Record #{id} is removed.");
+            }
+            else
+            {
+                Console.WriteLine($"Record #{id} doesn't exist.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred while removing the record: {ex.Message}");
         }
     }
 

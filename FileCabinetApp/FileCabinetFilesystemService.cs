@@ -24,6 +24,36 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public bool RemoveRecord(int id)
+        {
+            long position = (id - 1) * RecordSize;
+            if (position >= this.fileStream.Length)
+            {
+                return false;
+            }
+
+            this.fileStream.Seek(position, SeekOrigin.Begin);
+
+            byte[] buffer = new byte[2];
+            this.fileStream.Read(buffer, 0, 2);
+
+            short status = BitConverter.ToInt16(buffer, 0);
+            if ((status & 0x0002) != 0) // Check if already deleted
+            {
+                return false;
+            }
+
+            status |= 0x0002; // Set IsDeleted bit
+            buffer = BitConverter.GetBytes(status);
+
+            this.fileStream.Seek(position, SeekOrigin.Begin);
+            this.fileStream.Write(buffer, 0, 2);
+            this.fileStream.Flush();
+
+            return true;
+        }
+
+        /// <inheritdoc/>
         public void Restore(FileCabinetServiceSnapshot snapshot)
         {
             if (snapshot == null)
@@ -102,22 +132,21 @@ namespace FileCabinetApp
             this.fileStream.Seek(0, SeekOrigin.Begin);
 
             byte[] buffer = new byte[RecordSize];
-            int bytesRead;
 
-            while ((bytesRead = this.fileStream.Read(buffer, 0, RecordSize)) == RecordSize)
+            while (this.fileStream.Read(buffer, 0, RecordSize) == RecordSize)
             {
                 using (MemoryStream memoryStream = new MemoryStream(buffer))
                 using (BinaryReader reader = new BinaryReader(memoryStream))
                 {
                     short status = reader.ReadInt16();
-                    if (status == 1)
+                    if ((status & 0x0002) == 0) // Check if not deleted
                     {
                         FileCabinetRecord record = new FileCabinetRecord
                         {
                             Id = reader.ReadInt32(),
                             FirstName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
                             LastName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
-                            DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()),
+                            DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), 0, 0, 0, DateTimeKind.Utc),
                             Age = reader.ReadInt16(),
                             Salary = reader.ReadDecimal(),
                             Gender = reader.ReadChar(),

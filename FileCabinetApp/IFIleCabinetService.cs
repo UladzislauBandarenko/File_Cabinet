@@ -65,5 +65,12 @@ namespace FileCabinetApp
         /// </summary>
         /// <param name="snapshot">The snapshot to restore from.</param>
         void Restore(FileCabinetServiceSnapshot snapshot);
+
+        /// <summary>
+        /// Removes a record from the file cabinet.
+        /// </summary>
+        /// <param name="id">The id of the record to remove.</param>
+        /// <returns>True if the record is removed, false otherwise.</returns>
+        bool RemoveRecord(int id);
     }
 }

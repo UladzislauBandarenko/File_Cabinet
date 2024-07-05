@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using FileCabinetApp.Models;
 
 namespace FileCabinetApp.CommandHandlers
 {
@@ -9,14 +10,17 @@ namespace FileCabinetApp.CommandHandlers
     public class FindCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
+        private readonly IReadOnlyCollection<HelpMessage> helpMessages;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FindCommandHandler"/> class.
         /// </summary>
         /// <param name="fileCabinetService">The file cabinet service.</param>
-        public FindCommandHandler(IFileCabinetService fileCabinetService)
+        /// <param name="helpMessages">The help messages.</param>
+        public FindCommandHandler(IFileCabinetService fileCabinetService, IReadOnlyCollection<HelpMessage> helpMessages)
         {
             this.fileCabinetService = fileCabinetService;
+            this.helpMessages = helpMessages;
         }
 
         /// <inheritdoc/>
@@ -32,7 +36,13 @@ namespace FileCabinetApp.CommandHandlers
                 var inputs = command.Split(' ', 3);
                 if (inputs.Length < 3)
                 {
-                    Console.WriteLine("Invalid command format. Usage: find <property> <value>");
+                    var findHelp = this.helpMessages.FirstOrDefault(m => m.Command == "find");
+                    Console.WriteLine("Invalid command format.");
+                    if (findHelp != null)
+                    {
+                        Console.WriteLine(findHelp.DetailedDescription);
+                    }
+
                     return;
                 }
 

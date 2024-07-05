@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using FileCabinetApp.Models;
 
 namespace FileCabinetApp.CommandHandlers
 {
@@ -10,14 +11,17 @@ namespace FileCabinetApp.CommandHandlers
     public class DeleteCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
+        private readonly IReadOnlyCollection<HelpMessage> helpMessages;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeleteCommandHandler"/> class.
         /// </summary>
         /// <param name="fileCabinetService">The file cabinet service.</param>
-        public DeleteCommandHandler(IFileCabinetService fileCabinetService)
+        /// <param name="helpMessages">The help messages.</param>
+        public DeleteCommandHandler(IFileCabinetService fileCabinetService, IReadOnlyCollection<HelpMessage> helpMessages)
         {
             this.fileCabinetService = fileCabinetService;
+            this.helpMessages = helpMessages;
         }
 
         /// <inheritdoc/>
@@ -30,7 +34,7 @@ namespace FileCabinetApp.CommandHandlers
 
             if (command.StartsWith("delete", StringComparison.InvariantCultureIgnoreCase))
             {
-                var match = Regex.Match(command, @"delete\s+where\s+(\w+)\s*=\s*'([^']*)'", RegexOptions.IgnoreCase);
+                var match = Regex.Match(command, @"delete\s+where\s+(\w+)\s*=\s*'?([^']*)'?", RegexOptions.IgnoreCase);
                 if (match.Success)
                 {
                     string field = match.Groups[1].Value.ToLowerInvariant();
@@ -56,7 +60,12 @@ namespace FileCabinetApp.CommandHandlers
                 }
                 else
                 {
-                    Console.WriteLine("Invalid delete command format. Usage: delete where <field> = '<value>'");
+                    var deleteHelp = this.helpMessages.FirstOrDefault(m => m.Command == "delete");
+                    Console.WriteLine("Invalid delete command format.");
+                    if (deleteHelp != null)
+                    {
+                        Console.WriteLine(deleteHelp.DetailedDescription);
+                    }
                 }
             }
             else if (this.nextHandler != null)

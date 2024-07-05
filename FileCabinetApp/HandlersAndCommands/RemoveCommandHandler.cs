@@ -1,3 +1,5 @@
+using FileCabinetApp.Models;
+
 namespace FileCabinetApp.CommandHandlers
 {
     /// <summary>
@@ -6,14 +8,17 @@ namespace FileCabinetApp.CommandHandlers
     public class RemoveCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
+        private readonly IReadOnlyCollection<HelpMessage> helpMessages;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RemoveCommandHandler"/> class.
         /// </summary>
         /// <param name="fileCabinetService">The file cabinet service.</param>
-        public RemoveCommandHandler(IFileCabinetService fileCabinetService)
+        /// <param name="helpMessages">The help messages.</param>
+        public RemoveCommandHandler(IFileCabinetService fileCabinetService, IReadOnlyCollection<HelpMessage> helpMessages)
         {
             this.fileCabinetService = fileCabinetService;
+            this.helpMessages = helpMessages;
         }
 
         /// <inheritdoc/>
@@ -29,7 +34,13 @@ namespace FileCabinetApp.CommandHandlers
                 var inputs = command.Split(' ', 2);
                 if (inputs.Length < 2 || !int.TryParse(inputs[1], out int id))
                 {
+                    var removeHelp = this.helpMessages.FirstOrDefault(m => m.Command == "remove");
                     Console.WriteLine($"Invalid record id: {inputs[1]}");
+                    if (removeHelp != null)
+                    {
+                        Console.WriteLine(removeHelp.DetailedDescription);
+                    }
+
                     return;
                 }
 

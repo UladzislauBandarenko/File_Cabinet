@@ -4,6 +4,251 @@
         <name>FileCabinetApp</name>
     </assembly>
     <members>
+        <member name="T:FileCabinetApp.CommandHandlers.CommandHandlerBase">
+            <summary>
+            Command handler base.
+            </summary>
+        </member>
+        <member name="F:FileCabinetApp.CommandHandlers.CommandHandlerBase.nextHandler">
+            <summary>
+            The next handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.CommandHandlerBase.SetNext(FileCabinetApp.CommandHandlers.ICommandHandler)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.CommandHandlerBase.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.CreateCommandHandler">
+            <summary>
+            Create command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.CreateCommandHandler.#ctor(FileCabinetApp.IFileCabinetService,System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.Models.HelpMessage})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.CreateCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+            <param name="helpMessages">The help messages.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.CreateCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.DeleteCommandHandler">
+            <summary>
+            Delete command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.DeleteCommandHandler.#ctor(FileCabinetApp.IFileCabinetService,System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.Models.HelpMessage})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.DeleteCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+            <param name="helpMessages">The help messages.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.DeleteCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.EditCommandHandler">
+            <summary>
+            Edit command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.EditCommandHandler.#ctor(FileCabinetApp.IFileCabinetService,System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.Models.HelpMessage})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.EditCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+            <param name="helpMessages">The help messages.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.EditCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.ExitCommandHandler">
+            <summary>
+            Exit command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.ExitCommandHandler.#ctor(System.Action{System.Boolean})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.ExitCommandHandler"/> class.
+            </summary>
+            <param name="setIsRunning">The set is running.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.ExitCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.ExportCommandHandler">
+            <summary>
+            Export command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.ExportCommandHandler.#ctor(FileCabinetApp.IFileCabinetService,System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.Models.HelpMessage})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.ExportCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+            <param name="helpMessages">The help messages.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.ExportCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.FindCommandHandler">
+            <summary>
+            Find command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.FindCommandHandler.#ctor(FileCabinetApp.IFileCabinetService,System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.Models.HelpMessage})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.FindCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+            <param name="helpMessages">The help messages.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.FindCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.HelpCommandHandler">
+            <summary>
+            Help command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.HelpCommandHandler.#ctor(System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.Models.HelpMessage})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.HelpCommandHandler"/> class.
+            </summary>
+            <param name="helpMessages">The help messages.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.HelpCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.ICommandHandler">
+            <summary>
+            Command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.ICommandHandler.Handle(System.String)">
+            <summary>
+            Handles the specified command.
+            </summary>
+            <param name="command">The command.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.ICommandHandler.SetNext(FileCabinetApp.CommandHandlers.ICommandHandler)">
+            <summary>
+            Sets the next handler.
+            </summary>
+            <param name="handler">The handler.</param>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.ImportCommandHandler">
+            <summary>
+            Import command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.ImportCommandHandler.#ctor(FileCabinetApp.IFileCabinetService,System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.Models.HelpMessage})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.ImportCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+            <param name="helpMessages">The help messages.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.ImportCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.InsertCommandHandler">
+            <summary>
+            Insert command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.InsertCommandHandler.#ctor(FileCabinetApp.IFileCabinetService,System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.Models.HelpMessage})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.InsertCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+            <param name="helpMessages">The help messages.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.InsertCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.ListCommandHandler">
+            <summary>
+            List command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.ListCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.ListCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.ListCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.PurgeCommandHandler">
+            <summary>
+            Purge command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.PurgeCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.PurgeCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.PurgeCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.RemoveCommandHandler">
+            <summary>
+            Remove command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.RemoveCommandHandler.#ctor(FileCabinetApp.IFileCabinetService,System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.Models.HelpMessage})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.RemoveCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+            <param name="helpMessages">The help messages.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.RemoveCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.StatCommandHandler">
+            <summary>
+            Stat command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.StatCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.StatCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.StatCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.CommandHandlers.UpdateCommandHandler">
+            <summary>
+            The update command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.UpdateCommandHandler.#ctor(FileCabinetApp.IFileCabinetService,System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.Models.HelpMessage})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.UpdateCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+            <param name="helpMessages">The help messages.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.UpdateCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.UpdateCommandHandler.ParseSetClause(System.String)">
+            <summary>
+            Parses the set clause.
+            </summary>
+            <param name="setClause">The set clause.</param>
+            <returns>Fields to update.</returns>
+        </member>
         <member name="T:FileCabinetApp.FileCabinetRecord">
             <summary>
             Represents a record in the file cabinet.
@@ -57,235 +302,20 @@
             </summary>
             <value>The printed representation of the record.</value>
         </member>
-        <member name="T:FileCabinetApp.CommandHandlers.CommandHandlerBase">
-            <summary>
-            Command handler base.
-            </summary>
-        </member>
-        <member name="F:FileCabinetApp.CommandHandlers.CommandHandlerBase.nextHandler">
-            <summary>
-            The next handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.CommandHandlerBase.SetNext(FileCabinetApp.CommandHandlers.ICommandHandler)">
-            <inheritdoc/>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.CommandHandlerBase.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.CreateCommandHandler">
-            <summary>
-            Create command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.CreateCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.CreateCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.CreateCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.DeleteCommandHandler">
-            <summary>
-            Delete command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.DeleteCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.DeleteCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.DeleteCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.EditCommandHandler">
-            <summary>
-            Edit command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.EditCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.EditCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.EditCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.ExitCommandHandler">
-            <summary>
-            Exit command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.ExitCommandHandler.#ctor(System.Action{System.Boolean})">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.ExitCommandHandler"/> class.
-            </summary>
-            <param name="setIsRunning">The set is running.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.ExitCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.ExportCommandHandler">
-            <summary>
-            Export command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.ExportCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.ExportCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.ExportCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.FindCommandHandler">
-            <summary>
-            Find command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.FindCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.FindCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.FindCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.HelpCommandHandler">
-            <summary>
-            Help command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.HelpCommandHandler.#ctor(System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.HandlersAndCommands.HelpMessage})">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.HelpCommandHandler"/> class.
-            </summary>
-            <param name="helpMessages">The help messages.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.HelpCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.ICommandHandler">
-            <summary>
-            Command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.ICommandHandler.Handle(System.String)">
-            <summary>
-            Handles the specified command.
-            </summary>
-            <param name="command">The command.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.ICommandHandler.SetNext(FileCabinetApp.CommandHandlers.ICommandHandler)">
-            <summary>
-            Sets the next handler.
-            </summary>
-            <param name="handler">The handler.</param>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.ImportCommandHandler">
-            <summary>
-            Import command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.ImportCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.ImportCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.ImportCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.InsertCommandHandler">
-            <summary>
-            Insert command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.InsertCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.InsertCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.InsertCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.ListCommandHandler">
-            <summary>
-            List command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.ListCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.ListCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.ListCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.PurgeCommandHandler">
-            <summary>
-            Purge command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.PurgeCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.PurgeCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.PurgeCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.RemoveCommandHandler">
-            <summary>
-            Remove command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.RemoveCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.RemoveCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.RemoveCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.StatCommandHandler">
-            <summary>
-            Stat command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.StatCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.StatCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.StatCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.HandlersAndCommands.HelpMessage">
+        <member name="T:FileCabinetApp.Models.HelpMessage">
             <summary>
             Help message.
             </summary>
         </member>
-        <member name="M:FileCabinetApp.HandlersAndCommands.HelpMessage.#ctor(System.String,System.String,System.String)">
+        <member name="M:FileCabinetApp.Models.HelpMessage.#ctor(System.String,System.String,System.String)">
             <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.HandlersAndCommands.HelpMessage"/> class.
+            Initializes a new instance of the <see cref="T:FileCabinetApp.Models.HelpMessage"/> class.
             </summary>
             <param name="command">The command.</param>
             <param name="shortDescription">The short description.</param>
             <param name="detailedDescription">The detailed description.</param>
         </member>
-        <member name="P:FileCabinetApp.HandlersAndCommands.HelpMessage.Command">
+        <member name="P:FileCabinetApp.Models.HelpMessage.Command">
             <summary>
             Gets or sets the command.
             </summary>
@@ -293,7 +323,7 @@
             The command.
             </value>
         </member>
-        <member name="P:FileCabinetApp.HandlersAndCommands.HelpMessage.ShortDescription">
+        <member name="P:FileCabinetApp.Models.HelpMessage.ShortDescription">
             <summary>
             Gets or sets the short description.
             </summary>
@@ -301,7 +331,7 @@
             The short description.
             </value>
         </member>
-        <member name="P:FileCabinetApp.HandlersAndCommands.HelpMessage.DetailedDescription">
+        <member name="P:FileCabinetApp.Models.HelpMessage.DetailedDescription">
             <summary>
             Gets or sets the detailed description.
             </summary>
@@ -417,6 +447,9 @@
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.DeleteRecords(System.String,System.String)">
             <inheritdoc/>
         </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemService.UpdateRecords(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
+            <inheritdoc/>
+        </member>
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.GetRecords(FileCabinetApp.RecordPrinter)">
             <inheritdoc/>
         </member>
@@ -468,6 +501,9 @@
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.FileCabinetMemoryService.DeleteRecords(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryService.UpdateRecords(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.FileCabinetMemoryService.GetRecords(FileCabinetApp.RecordPrinter)">
@@ -618,6 +654,14 @@
             <param name="value">The value to match.</param>
             <returns>A list of deleted record IDs.</returns>
         </member>
+        <member name="M:FileCabinetApp.IFileCabinetService.UpdateRecords(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Updates records based on the specified field and value.
+            </summary>
+            <param name="fieldsToUpdate">The fields to update.</param>
+            <param name="conditions">The conditions to match.</param>
+            <returns>The number of updated records.</returns>
+        </member>
         <member name="T:FileCabinetApp.ServiceLogger">
             <summary>
             Service logger class.
@@ -637,6 +681,9 @@
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.ServiceLogger.DeleteRecords(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.UpdateRecords(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.ServiceLogger.GetRecords(FileCabinetApp.RecordPrinter)">
@@ -707,6 +754,9 @@
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.ServiceMeter.DeleteRecords(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.UpdateRecords(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.ServiceMeter.GetRecords(FileCabinetApp.RecordPrinter)">

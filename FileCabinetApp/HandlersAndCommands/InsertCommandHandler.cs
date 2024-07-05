@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using FileCabinetApp.Models;
 
 namespace FileCabinetApp.CommandHandlers
 {
@@ -10,14 +11,17 @@ namespace FileCabinetApp.CommandHandlers
     public class InsertCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
+        private readonly IReadOnlyCollection<HelpMessage> helpMessages;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InsertCommandHandler"/> class.
         /// </summary>
         /// <param name="fileCabinetService">The file cabinet service.</param>
-        public InsertCommandHandler(IFileCabinetService fileCabinetService)
+        /// <param name="helpMessages">The help messages.</param>
+        public InsertCommandHandler(IFileCabinetService fileCabinetService, IReadOnlyCollection<HelpMessage> helpMessages)
         {
             this.fileCabinetService = fileCabinetService;
+            this.helpMessages = helpMessages;
         }
 
         /// <inheritdoc/>
@@ -43,7 +47,13 @@ namespace FileCabinetApp.CommandHandlers
             var match = Regex.Match(command, @"insert\s*\((.*?)\)\s*values\s*\((.*?)\)", RegexOptions.IgnoreCase);
             if (!match.Success)
             {
+                var insertHelp = this.helpMessages.FirstOrDefault(m => m.Command == "insert");
                 Console.WriteLine("Invalid insert command format.");
+                if (insertHelp != null)
+                {
+                    Console.WriteLine(insertHelp.DetailedDescription);
+                }
+
                 return;
             }
 

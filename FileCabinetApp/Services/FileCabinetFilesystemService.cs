@@ -350,6 +350,59 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public int UpdateRecords(Dictionary<string, string> fieldsToUpdate, Dictionary<string, string> conditions)
+        {
+            if (fieldsToUpdate == null || conditions == null)
+            {
+                throw new ArgumentNullException(fieldsToUpdate == null ? nameof(fieldsToUpdate) : nameof(conditions));
+            }
+
+            int updatedCount = 0;
+            long fileLength = this.fileStream.Length;
+            byte[] buffer = new byte[RecordSize];
+
+            for (long position = 0; position < fileLength; position += RecordSize)
+            {
+                this.fileStream.Seek(position, SeekOrigin.Begin);
+                this.fileStream.Read(buffer, 0, RecordSize);
+
+                using (var memoryStream = new MemoryStream(buffer))
+                using (var reader = new BinaryReader(memoryStream))
+                {
+                    short status = reader.ReadInt16();
+                    if (status != ActiveStatus)
+                    {
+                        continue;
+                    }
+
+                    var record = new FileCabinetRecord
+                    {
+                        Id = reader.ReadInt32(),
+                        FirstName = Encoding.ASCII.GetString(reader.ReadBytes(60)).TrimEnd('\0', ' '),
+                        LastName = Encoding.ASCII.GetString(reader.ReadBytes(60)).TrimEnd('\0', ' '),
+                        DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()),
+                        Age = reader.ReadInt16(),
+                        Salary = reader.ReadDecimal(),
+                        Gender = (char)reader.ReadInt16(),
+                    };
+
+                    if (MatchesConditions(record, conditions))
+                    {
+                        if (UpdateRecord(record, fieldsToUpdate))
+                        {
+                            this.fileStream.Seek(position, SeekOrigin.Begin);
+                            WriteRecord(record);
+                            updatedCount++;
+                        }
+                    }
+                }
+            }
+
+            this.fileStream.Flush();
+            return updatedCount;
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             if (printer is null)
@@ -499,6 +552,86 @@ namespace FileCabinetApp
             return $"#{record.Id}, {record.FirstName?.TrimEnd()}, {record.LastName?.TrimEnd()}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
         }
 
+        private static bool MatchesConditions(FileCabinetRecord record, Dictionary<string, string> conditions)
+        {
+            foreach (var condition in conditions)
+            {
+                switch (condition.Key.ToLowerInvariant())
+                {
+                    case "id":
+                        if (record.Id.ToString() != condition.Value) return false;
+                        break;
+                    case "firstname":
+                        if (!record.FirstName.Equals(condition.Value, StringComparison.OrdinalIgnoreCase)) return false;
+                        break;
+                    case "lastname":
+                        if (!record.LastName.Equals(condition.Value, StringComparison.OrdinalIgnoreCase)) return false;
+                        break;
+                    case "dateofbirth":
+                        if (record.DateOfBirth.ToString("yyyy-MM-dd") != condition.Value) return false;
+                        break;
+                    case "age":
+                        if (record.Age.ToString() != condition.Value) return false;
+                        break;
+                    case "salary":
+                        if (record.Salary.ToString(CultureInfo.InvariantCulture) != condition.Value) return false;
+                        break;
+                    case "gender":
+                        if (record.Gender.ToString() != condition.Value) return false;
+                        break;
+                }
+            }
+            return true;
+        }
+
+        private static bool UpdateRecord(FileCabinetRecord record, Dictionary<string, string> fieldsToUpdate)
+        {
+            bool updated = false;
+            foreach (var field in fieldsToUpdate)
+            {
+                switch (field.Key.ToLowerInvariant())
+                {
+                    case "firstname":
+                        record.FirstName = field.Value;
+                        updated = true;
+                        break;
+                    case "lastname":
+                        record.LastName = field.Value;
+                        updated = true;
+                        break;
+                    case "dateofbirth":
+                        if (DateTime.TryParse(field.Value, out DateTime dateOfBirth))
+                        {
+                            record.DateOfBirth = dateOfBirth;
+                            updated = true;
+                        }
+                        break;
+                    case "age":
+                        if (short.TryParse(field.Value, out short age))
+                        {
+                            record.Age = age;
+                            updated = true;
+                        }
+                        break;
+                    case "salary":
+                        if (decimal.TryParse(field.Value, out decimal salary))
+                        {
+                            record.Salary = salary;
+                            updated = true;
+                        }
+                        break;
+                    case "gender":
+                        if (char.TryParse(field.Value, out char gender))
+                        {
+                            record.Gender = gender;
+                            updated = true;
+                        }
+                        break;
+                }
+            }
+            return updated;
+        }
+
         private void ValidatePersonalInfo(PersonalInfo personalInfo)
         {
             if (!this.validator.ValidateFirstName(personalInfo.FirstName, out string errorMessage))
@@ -582,6 +715,23 @@ namespace FileCabinetApp
             }
 
             return new ReadOnlyCollection<FileCabinetRecord>(result);
+        }
+
+        private void WriteRecord(FileCabinetRecord record)
+        {
+            using (var writer = new BinaryWriter(this.fileStream, Encoding.ASCII, true))
+            {
+                writer.Write(ActiveStatus);
+                writer.Write(record.Id);
+                writer.Write(Encoding.ASCII.GetBytes(record.FirstName.PadRight(60)));
+                writer.Write(Encoding.ASCII.GetBytes(record.LastName.PadRight(60)));
+                writer.Write(record.DateOfBirth.Year);
+                writer.Write(record.DateOfBirth.Month);
+                writer.Write(record.DateOfBirth.Day);
+                writer.Write(record.Age);
+                writer.Write(record.Salary);
+                writer.Write((short)record.Gender);
+            }
         }
     }
 }

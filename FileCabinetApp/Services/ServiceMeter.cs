@@ -60,6 +60,16 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public int UpdateRecords(Dictionary<string, string> fieldsToUpdate, Dictionary<string, string> conditions)
+        {
+            this.stopwatch.Restart();
+            var result = this.service.UpdateRecords(fieldsToUpdate, conditions);
+            this.stopwatch.Stop();
+            Console.WriteLine($"UpdateRecords method execution time: {this.stopwatch.ElapsedTicks} ticks");
+            return result;
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             this.stopwatch.Restart();

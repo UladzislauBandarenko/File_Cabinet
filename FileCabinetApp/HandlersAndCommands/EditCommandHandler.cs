@@ -1,4 +1,5 @@
 using System.Globalization;
+using FileCabinetApp.Models;
 
 namespace FileCabinetApp.CommandHandlers
 {
@@ -8,14 +9,17 @@ namespace FileCabinetApp.CommandHandlers
     public class EditCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
+        private readonly IReadOnlyCollection<HelpMessage> helpMessages;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EditCommandHandler"/> class.
         /// </summary>
         /// <param name="fileCabinetService">The file cabinet service.</param>
-        public EditCommandHandler(IFileCabinetService fileCabinetService)
+        /// <param name="helpMessages">The help messages.</param>
+        public EditCommandHandler(IFileCabinetService fileCabinetService, IReadOnlyCollection<HelpMessage> helpMessages)
         {
             this.fileCabinetService = fileCabinetService;
+            this.helpMessages = helpMessages;
         }
 
         /// <inheritdoc/>
@@ -31,7 +35,12 @@ namespace FileCabinetApp.CommandHandlers
                 string[] parts = command.Split(' ', 2);
                 if (parts.Length < 2 || !int.TryParse(parts[1], out int id))
                 {
-                    Console.WriteLine("Invalid command format. Usage: edit <id>");
+                    var editHelp = this.helpMessages.FirstOrDefault(m => m.Command == "edit");
+                    Console.WriteLine("Invalid command format.");
+                    if (editHelp != null)
+                    {
+                        Console.WriteLine(editHelp.DetailedDescription);
+                    }
                     return;
                 }
 

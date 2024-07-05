@@ -1,3 +1,5 @@
+using FileCabinetApp.Models;
+
 namespace FileCabinetApp.CommandHandlers
 {
     /// <summary>
@@ -6,14 +8,17 @@ namespace FileCabinetApp.CommandHandlers
     public class ImportCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
+        private readonly IReadOnlyCollection<HelpMessage> helpMessages;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportCommandHandler"/> class.
         /// </summary>
         /// <param name="fileCabinetService">The file cabinet service.</param>
-        public ImportCommandHandler(IFileCabinetService fileCabinetService)
+        /// <param name="helpMessages">The help messages.</param>
+        public ImportCommandHandler(IFileCabinetService fileCabinetService, IReadOnlyCollection<HelpMessage> helpMessages)
         {
             this.fileCabinetService = fileCabinetService;
+            this.helpMessages = helpMessages;
         }
 
         /// <inheritdoc/>
@@ -29,7 +34,13 @@ namespace FileCabinetApp.CommandHandlers
                 var inputs = command.Split(' ', 3);
                 if (inputs.Length < 3)
                 {
-                    Console.WriteLine("Invalid command format. Usage: import [csv|xml] <filename>");
+                    var importHelp = this.helpMessages.FirstOrDefault(m => m.Command == "import");
+                    Console.WriteLine("Invalid command format.");
+                    if (importHelp != null)
+                    {
+                        Console.WriteLine(importHelp.DetailedDescription);
+                    }
+
                     return;
                 }
 

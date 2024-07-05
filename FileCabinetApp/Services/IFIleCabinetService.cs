@@ -103,11 +103,19 @@ namespace FileCabinetApp
         int InsertRecord(int id, PersonalInfo personalInfo);
 
         /// <summary>
-/// Deletes records based on the specified field and value.
+        /// Deletes records based on the specified field and value.
         /// </summary>
         /// <param name="field">The field to match.</param>
         /// <param name="value">The value to match.</param>
         /// <returns>A list of deleted record IDs.</returns>
         ReadOnlyCollection<int> DeleteRecords(string field, string value);
+
+        /// <summary>
+        /// Updates records based on the specified field and value.
+        /// </summary>
+        /// <param name="fieldsToUpdate">The fields to update.</param>
+        /// <param name="conditions">The conditions to match.</param>
+        /// <returns>The number of updated records.</returns>
+        int UpdateRecords(Dictionary<string, string> fieldsToUpdate, Dictionary<string, string> conditions);
     }
 }

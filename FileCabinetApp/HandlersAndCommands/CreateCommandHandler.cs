@@ -1,4 +1,5 @@
 using System.Globalization;
+using FileCabinetApp.Models;
 
 namespace FileCabinetApp.CommandHandlers
 {
@@ -8,14 +9,17 @@ namespace FileCabinetApp.CommandHandlers
     public class CreateCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
+        private readonly IReadOnlyCollection<HelpMessage> helpMessages;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateCommandHandler"/> class.
         /// </summary>
         /// <param name="fileCabinetService">The file cabinet service.</param>
-        public CreateCommandHandler(IFileCabinetService fileCabinetService)
+        /// <param name="helpMessages">The help messages.</param>
+        public CreateCommandHandler(IFileCabinetService fileCabinetService, IReadOnlyCollection<HelpMessage> helpMessages)
         {
             this.fileCabinetService = fileCabinetService;
+            this.helpMessages = helpMessages;
         }
 
         /// <inheritdoc/>
@@ -58,7 +62,12 @@ namespace FileCabinetApp.CommandHandlers
                 }
                 catch (FormatException)
                 {
-                    Console.WriteLine("Invalid input format. Please try again.");
+                    var createHelp = this.helpMessages.FirstOrDefault(m => m.Command == "create");
+                    Console.WriteLine("Invalid input format.");
+                    if (createHelp != null)
+                    {
+                        Console.WriteLine(createHelp.DetailedDescription);
+                    }
                 }
             }
             else if (this.nextHandler != null)

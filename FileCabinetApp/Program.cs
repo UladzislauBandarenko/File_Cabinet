@@ -48,6 +48,7 @@ public static class Program
         string validationRules = "default";
         string storage = "memory";
         bool useStopwatch = false;
+        bool useLogger = false;
 
         int i = 0;
         while (i < args.Length)
@@ -85,6 +86,12 @@ public static class Program
                 i++;
                 continue;
             }
+            else if (args[i] == "--use-logger")
+            {
+                useLogger = true;
+                i++;
+                continue;
+            }
 
             i++;
         }
@@ -114,6 +121,12 @@ public static class Program
             fileCabinetService = new ServiceMeter(fileCabinetService);
         }
 
+        if (useLogger)
+        {
+            string logFilePath = "filecabinet-log.txt";
+            fileCabinetService = new ServiceLogger(fileCabinetService, logFilePath);
+        }
+
         Console.WriteLine($"File Cabinet Application, developed by {Program.DeveloperName}");
         Console.WriteLine($"Using {storage} storage.");
         Console.WriteLine($"Using {validationRules} validation rules.");
@@ -121,6 +134,12 @@ public static class Program
         {
             Console.WriteLine("Execution time measurement is enabled.");
         }
+
+        if (useLogger)
+        {
+            Console.WriteLine("Service logging is enabled.");
+        }
+
         Console.WriteLine(Program.HintMessage);
         Console.WriteLine();
 

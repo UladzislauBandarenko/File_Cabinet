@@ -237,6 +237,18 @@ namespace FileCabinetApp
             return updatedCount;
         }
 
+        public IEnumerable<FileCabinetRecord> SelectRecords(List<string> fields, Dictionary<string, string> conditions)
+        {
+            IEnumerable<FileCabinetRecord> records = this.records;
+
+            if (conditions != null && conditions.Count > 0)
+            {
+                records = records.Where(record => MatchesConditions(record, conditions));
+            }
+
+            return records;
+        }
+
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {

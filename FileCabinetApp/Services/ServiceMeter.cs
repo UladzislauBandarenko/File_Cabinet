@@ -70,6 +70,16 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public IEnumerable<FileCabinetRecord> SelectRecords(List<string> fields, Dictionary<string, string> conditions)
+        {
+            this.stopwatch.Restart();
+            var result = this.service.SelectRecords(fields, conditions);
+            this.stopwatch.Stop();
+            Console.WriteLine($"SelectRecords method execution time: {this.stopwatch.ElapsedTicks} ticks");
+            return result;
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             this.stopwatch.Restart();

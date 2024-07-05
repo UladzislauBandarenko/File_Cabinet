@@ -420,6 +420,9 @@
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.UpdateRecords(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
             <inheritdoc/>
         </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemService.SelectRecords(System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
+            <inheritdoc/>
+        </member>
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.GetRecords(FileCabinetApp.RecordPrinter)">
             <inheritdoc/>
         </member>
@@ -620,6 +623,14 @@
             <param name="conditions">The conditions to match.</param>
             <returns>The number of updated records.</returns>
         </member>
+        <member name="M:FileCabinetApp.IFileCabinetService.SelectRecords(System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Selects records based on the specified fields and conditions.
+            </summary>
+            <param name="fields">The fields to select.</param>
+            <param name="conditions">The conditions to match.</param>
+            <returns>The collection of selected records.</returns>
+        </member>
         <member name="T:FileCabinetApp.ServiceLogger">
             <summary>
             Service logger class.
@@ -674,6 +685,9 @@
         <member name="M:FileCabinetApp.ServiceLogger.RecordExists(System.Int32)">
             <inheritdoc/>
         </member>
+        <member name="M:FileCabinetApp.ServiceLogger.SelectRecords(System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
+            <inheritdoc/>
+        </member>
         <member name="M:FileCabinetApp.ServiceLogger.Dispose">
             <inheritdoc/>
         </member>
@@ -712,6 +726,9 @@
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.ServiceMeter.UpdateRecords(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.SelectRecords(System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.ServiceMeter.GetRecords(FileCabinetApp.RecordPrinter)">

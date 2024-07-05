@@ -29,6 +29,7 @@ public static class Program
         new HelpMessage("insert", "inserts a new record", "The 'insert' command inserts a new record. Usage: insert (id, firstname, lastname, dateofbirth, height, weight, gender) values (<id>, <firstname>, <lastname>, <dateofbirth>, <height>, <weight>, <gender>)"),
         new HelpMessage("delete", "deletes records", "The 'delete' command deletes records. Usage: delete where <field>=<value>"),
         new HelpMessage("update", "updates records", "The 'update' command updates records. Usage: update set <field1>=<value1>, <field2>=<value2>, ... where <field3>=<value3>, <field4>=<value4>, ..."),
+        new HelpMessage("select", "selects records", "The 'select' command selects records based on specified fields and conditions. Usage: select <field1>, <field2>, ... [where <condition1> and/or <condition2> ...]"),
     };
 
     private static IFileCabinetService? fileCabinetService;
@@ -176,6 +177,7 @@ public static class Program
         var insertCommandHandler = new InsertCommandHandler(fileCabinetService, HelpMessages);
         var deleteCommandHandler = new DeleteCommandHandler(fileCabinetService, HelpMessages);
         var updateCommandHandler = new UpdateCommandHandler(fileCabinetService, HelpMessages);
+        var selectCommandHandler = new SelectCommandHandler(fileCabinetService, HelpMessages);
 
         helpHandler.SetNext(exitHandler);
         exitHandler.SetNext(statHandler);
@@ -188,6 +190,7 @@ public static class Program
         purgeHandler.SetNext(insertCommandHandler);
         insertCommandHandler.SetNext(deleteCommandHandler);
         deleteCommandHandler.SetNext(updateCommandHandler);
+        updateCommandHandler.SetNext(selectCommandHandler);
 
         return helpHandler;
     }

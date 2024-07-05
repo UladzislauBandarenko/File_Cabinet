@@ -110,5 +110,13 @@ namespace FileCabinetApp
         /// <param name="conditions">The conditions to match.</param>
         /// <returns>The number of updated records.</returns>
         int UpdateRecords(Dictionary<string, string> fieldsToUpdate, Dictionary<string, string> conditions);
+
+        /// <summary>
+        /// Selects records based on the specified fields and conditions.
+        /// </summary>
+        /// <param name="fields">The fields to select.</param>
+        /// <param name="conditions">The conditions to match.</param>
+        /// <returns>The collection of selected records.</returns>
+        IEnumerable<FileCabinetRecord> SelectRecords(List<string> fields, Dictionary<string, string> conditions);
     }
 }

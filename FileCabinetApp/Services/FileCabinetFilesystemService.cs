@@ -403,6 +403,80 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public IEnumerable<FileCabinetRecord> SelectRecords(List<string> fields, Dictionary<string, string> conditions)
+        {
+            if (fields == null)
+            {
+                throw new ArgumentNullException(nameof(fields));
+            }
+
+            var result = new List<FileCabinetRecord>();
+            byte[] buffer = new byte[RecordSize];
+
+            this.fileStream.Seek(0, SeekOrigin.Begin);
+
+            while (this.fileStream.Read(buffer, 0, RecordSize) == RecordSize)
+            {
+                using var memoryStream = new MemoryStream(buffer);
+                using var reader = new BinaryReader(memoryStream);
+
+                short status = reader.ReadInt16();
+                if (status != ActiveStatus)
+                {
+                    continue;
+                }
+
+                var record = new FileCabinetRecord
+                {
+                    Id = reader.ReadInt32(),
+                    FirstName = Encoding.ASCII.GetString(reader.ReadBytes(60)).TrimEnd('\0', ' '),
+                    LastName = Encoding.ASCII.GetString(reader.ReadBytes(60)).TrimEnd('\0', ' '),
+                };
+
+                int year = reader.ReadInt32();
+                int month = reader.ReadInt32();
+                int day = reader.ReadInt32();
+
+                try
+                {
+                    record.DateOfBirth = new DateTime(year, month, day, 0, 0, 0, 0, DateTimeKind.Local);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    // Skip this record if the date is invalid
+                    continue;
+                }
+
+                record.Age = reader.ReadInt16();
+                record.Salary = reader.ReadDecimal();
+                record.Gender = (char)reader.ReadInt16();
+
+                if (conditions == null || MatchesConditions(record, conditions))
+                {
+                    result.Add(record);
+                }
+            }
+
+            // If no fields are specified, return all fields
+            if (fields.Count == 0)
+            {
+                return result;
+            }
+
+            // Project the records to include only the specified fields
+            return result.Select(r => new FileCabinetRecord
+            {
+                Id = fields.Contains("id", StringComparer.OrdinalIgnoreCase) ? r.Id : 0,
+                FirstName = fields.Contains("firstname", StringComparer.OrdinalIgnoreCase) ? r.FirstName : null,
+                LastName = fields.Contains("lastname", StringComparer.OrdinalIgnoreCase) ? r.LastName : null,
+                DateOfBirth = fields.Contains("dateofbirth", StringComparer.OrdinalIgnoreCase) ? r.DateOfBirth : default,
+                Age = fields.Contains("age", StringComparer.OrdinalIgnoreCase) ? r.Age : (short)0,
+                Salary = fields.Contains("salary", StringComparer.OrdinalIgnoreCase) ? r.Salary : 0,
+                Gender = fields.Contains("gender", StringComparer.OrdinalIgnoreCase) ? r.Gender : '\0',
+            });
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             if (printer is null)

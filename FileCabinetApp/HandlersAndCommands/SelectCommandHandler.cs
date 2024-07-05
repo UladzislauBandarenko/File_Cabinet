@@ -1,22 +1,32 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using FileCabinetApp.Models;
 
 namespace FileCabinetApp.CommandHandlers
 {
+    /// <summary>
+    /// Handles the select command.
+    /// </summary>
     public class SelectCommandHandler : CommandHandlerBase
     {
         private readonly IFileCabinetService fileCabinetService;
         private readonly IReadOnlyCollection<HelpMessage> helpMessages;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SelectCommandHandler"/> class.
+        /// </summary>
+        /// <param name="fileCabinetService">The file cabinet service.</param>
+        /// <param name="helpMessages">The help messages.</param>
         public SelectCommandHandler(IFileCabinetService fileCabinetService, IReadOnlyCollection<HelpMessage> helpMessages)
         {
             this.fileCabinetService = fileCabinetService;
             this.helpMessages = helpMessages;
         }
 
+        /// <summary>
+        /// Handles the command.
+        /// </summary>
+        /// <param name="command">The command.</param>
         public override void Handle(string command)
         {
             if (command == null)
@@ -34,33 +44,6 @@ namespace FileCabinetApp.CommandHandlers
             }
         }
 
-        private void ExecuteSelect(string command)
-        {
-            var match = Regex.Match(command, @"select\s+(.*?)(?:\s+where\s+(.*?))?$", RegexOptions.IgnoreCase);
-            if (!match.Success)
-            {
-                var selectHelp = this.helpMessages.FirstOrDefault(m => m.Command == "select");
-                Console.WriteLine("Invalid select command format.");
-                if (selectHelp != null)
-                {
-                    Console.WriteLine(selectHelp.DetailedDescription);
-                }
-                return;
-            }
-
-            var fields = match.Groups[1].Value.Split(',').Select(f => f.Trim()).ToList();
-            var whereClause = match.Groups[2].Success ? match.Groups[2].Value : null;
-
-            Dictionary<string, string> conditions = null;
-            if (!string.IsNullOrEmpty(whereClause))
-            {
-                conditions = ParseWhereClause(whereClause);
-            }
-
-            var records = this.fileCabinetService.SelectRecords(fields, conditions);
-            PrintRecords(records, fields);
-        }
-
         private static Dictionary<string, string> ParseWhereClause(string whereClause)
         {
             var conditions = new Dictionary<string, string>();
@@ -75,6 +58,7 @@ namespace FileCabinetApp.CommandHandlers
                     conditions[key] = value;
                 }
             }
+
             return conditions;
         }
 
@@ -125,6 +109,7 @@ namespace FileCabinetApp.CommandHandlers
             {
                 Console.Write($" {field.PadRight(columnWidths[field])} |");
             }
+
             Console.WriteLine();
         }
 
@@ -135,6 +120,7 @@ namespace FileCabinetApp.CommandHandlers
             {
                 Console.Write(new string('-', width + 2) + "+");
             }
+
             Console.WriteLine();
         }
 
@@ -153,6 +139,7 @@ namespace FileCabinetApp.CommandHandlers
                     Console.Write($" {value.PadRight(columnWidths[field])} |");
                 }
             }
+
             Console.WriteLine();
         }
 
@@ -161,22 +148,50 @@ namespace FileCabinetApp.CommandHandlers
             switch (field.ToLowerInvariant())
             {
                 case "id":
-                    return record.Id.ToString();
+                    return record.Id.ToString(CultureInfo.InvariantCulture);
                 case "firstname":
-                    return record.FirstName;
+                    return record.FirstName ?? string.Empty;
                 case "lastname":
-                    return record.LastName;
+                    return record.LastName ?? string.Empty;
                 case "dateofbirth":
-                    return record.DateOfBirth.ToString("yyyy-MM-dd");
+                    return record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
                 case "age":
-                    return record.Age.ToString();
+                    return record.Age.ToString(CultureInfo.InvariantCulture);
                 case "salary":
-                    return record.Salary.ToString("F2");
+                    return record.Salary.ToString("F2", CultureInfo.InvariantCulture);
                 case "gender":
                     return record.Gender.ToString();
                 default:
                     return string.Empty;
             }
+        }
+
+        private void ExecuteSelect(string command)
+        {
+            var match = Regex.Match(command, @"select\s+(.*?)(?:\s+where\s+(.*?))?$", RegexOptions.IgnoreCase);
+            if (!match.Success)
+            {
+                var selectHelp = this.helpMessages.FirstOrDefault(m => m.Command == "select");
+                Console.WriteLine("Invalid select command format.");
+                if (selectHelp != null)
+                {
+                    Console.WriteLine(selectHelp.DetailedDescription);
+                }
+
+                return;
+            }
+
+            var fields = match.Groups[1].Value.Split(',').Select(f => f.Trim()).ToList();
+            var whereClause = match.Groups[2].Success ? match.Groups[2].Value : null;
+
+            Dictionary<string, string> conditions = new ();
+            if (!string.IsNullOrEmpty(whereClause))
+            {
+                conditions = ParseWhereClause(whereClause);
+            }
+
+            var records = this.fileCabinetService.SelectRecords(fields, conditions);
+            PrintRecords(records, fields);
         }
     }
 }

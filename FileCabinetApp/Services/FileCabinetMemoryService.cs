@@ -237,6 +237,12 @@ namespace FileCabinetApp
             return updatedCount;
         }
 
+        /// <summary>
+        /// Selects the records.
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="conditions">The conditions.</param>
+        /// <returns>The records.</returns>
         public IEnumerable<FileCabinetRecord> SelectRecords(List<string> fields, Dictionary<string, string> conditions)
         {
             IEnumerable<FileCabinetRecord> records = this.records;

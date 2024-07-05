@@ -183,6 +183,24 @@
         <member name="M:FileCabinetApp.CommandHandlers.PurgeCommandHandler.Handle(System.String)">
             <inheritdoc/>
         </member>
+        <member name="T:FileCabinetApp.CommandHandlers.SelectCommandHandler">
+            <summary>
+            Handles the select command.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.SelectCommandHandler.#ctor(FileCabinetApp.IFileCabinetService,System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.Models.HelpMessage})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.SelectCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+            <param name="helpMessages">The help messages.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.SelectCommandHandler.Handle(System.String)">
+            <summary>
+            Handles the command.
+            </summary>
+            <param name="command">The command.</param>
+        </member>
         <member name="T:FileCabinetApp.CommandHandlers.StatCommandHandler">
             <summary>
             Stat command handler.

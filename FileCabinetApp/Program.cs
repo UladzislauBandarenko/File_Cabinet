@@ -158,9 +158,82 @@ public static class Program
                 continue;
             }
 
-            commandHandler.Handle(command);
+            var commandName = command.Split(' ')[0].ToLowerInvariant();
+            var validCommands = HelpMessages.Select(m => m.Command.ToLowerInvariant()).ToList();
+
+            if (validCommands.Contains(commandName))
+            {
+                commandHandler.Handle(command);
+            }
+            else
+            {
+                var similarCommands = FindSimilarCommands(commandName, validCommands);
+                Console.WriteLine($"'{commandName}' is not a valid command. See 'help' for available commands.");
+
+                if (similarCommands.Any())
+                {
+                    Console.WriteLine("The most similar command" + (similarCommands.Count > 1 ? "s are" : " is"));
+                    foreach (var similarCommand in similarCommands)
+                    {
+                        Console.WriteLine($"\t{similarCommand}");
+                    }
+                }
+            }
         }
         while (isRunning);
+    }
+
+    private static int LevenshteinDistance(string s, string t)
+    {
+        int n = s.Length;
+        int m = t.Length;
+        int[,] d = new int[n + 1, m + 1];
+
+        if (n == 0)
+        {
+            return m;
+        }
+
+        if (m == 0)
+        {
+            return n;
+        }
+
+        for (int i = 0; i <= n; d[i, 0] = i++)
+        {
+        }
+
+        for (int j = 0; j <= m; d[0, j] = j++)
+        {
+        }
+
+        for (int i = 1; i <= n; i++)
+        {
+            for (int j = 1; j <= m; j++)
+            {
+                int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                d[i, j] = Math.Min(
+                    Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                    d[i - 1, j - 1] + cost);
+            }
+        }
+
+        return d[n, m];
+    }
+
+    private static List<string> FindSimilarCommands(string input, IEnumerable<string> commands, int maxDistance = 3)
+    {
+        var similarCommands = new List<string>();
+        foreach (var command in commands)
+        {
+            int distance = LevenshteinDistance(input.ToLowerInvariant(), command.ToLowerInvariant());
+            if (distance <= maxDistance)
+            {
+                similarCommands.Add(command);
+            }
+        }
+
+        return similarCommands.OrderBy(c => LevenshteinDistance(input.ToLowerInvariant(), c.ToLowerInvariant())).ToList();
     }
 
     private static ICommandHandler CreateCommandHandlers(IFileCabinetService fileCabinetService)

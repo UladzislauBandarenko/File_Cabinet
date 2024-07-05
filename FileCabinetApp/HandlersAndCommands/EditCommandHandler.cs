@@ -37,18 +37,44 @@ namespace FileCabinetApp.CommandHandlers
 
                 try
                 {
+                    // Check if the record exists before prompting for input
+                    if (!this.fileCabinetService.RecordExists(id))
+                    {
+                        Console.WriteLine($"Record with id {id} does not exist.");
+                        return;
+                    }
+
                     Console.Write("First name: ");
                     var firstName = Console.ReadLine() ?? string.Empty;
                     Console.Write("Last name: ");
                     var lastName = Console.ReadLine() ?? string.Empty;
                     Console.Write("Date of birth (yyyy-mm-dd): ");
-                    var dateOfBirth = DateTime.Parse(Console.ReadLine() ?? string.Empty, CultureInfo.InvariantCulture);
+                    if (!DateTime.TryParse(Console.ReadLine(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateOfBirth))
+                    {
+                        Console.WriteLine("Invalid date format. Please use yyyy-mm-dd.");
+                        return;
+                    }
+
                     Console.Write("Age: ");
-                    var age = short.Parse(Console.ReadLine() ?? string.Empty, CultureInfo.InvariantCulture);
+                    if (!short.TryParse(Console.ReadLine(), out short age))
+                    {
+                        Console.WriteLine("Invalid age format. Please enter a number.");
+                        return;
+                    }
+
                     Console.Write("Salary: ");
-                    var salary = decimal.Parse(Console.ReadLine() ?? string.Empty, CultureInfo.InvariantCulture);
+                    if (!decimal.TryParse(Console.ReadLine(), out decimal salary))
+                    {
+                        Console.WriteLine("Invalid salary format. Please enter a number.");
+                        return;
+                    }
+
                     Console.Write("Gender (M/F): ");
-                    var gender = char.Parse(Console.ReadLine() ?? string.Empty);
+                    if (!char.TryParse(Console.ReadLine(), out char gender))
+                    {
+                        Console.WriteLine("Invalid gender. Please enter a character. (M/F)");
+                        return;
+                    }
 
                     var personalInfo = new PersonalInfo(firstName, lastName, dateOfBirth, age, salary, gender);
                     this.fileCabinetService.EditRecord(id, personalInfo);

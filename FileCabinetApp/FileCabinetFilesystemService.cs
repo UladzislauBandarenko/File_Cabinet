@@ -33,6 +33,33 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public bool RecordExists(int id)
+        {
+            long fileLength = this.fileStream.Length;
+            byte[] buffer = new byte[RecordSize];
+
+            for (long position = 0; position < fileLength; position += RecordSize)
+            {
+                this.fileStream.Seek(position, SeekOrigin.Begin);
+                this.fileStream.Read(buffer, 0, RecordSize);
+
+                using (var memoryStream = new MemoryStream(buffer))
+                using (var reader = new BinaryReader(memoryStream))
+                {
+                    short status = reader.ReadInt16();
+                    int recordId = reader.ReadInt32();
+
+                    if (status == ActiveStatus && recordId == id)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <inheritdoc/>
         public int PurgeRecords()
         {
             int purgedRecords = 0;
@@ -253,46 +280,42 @@ namespace FileCabinetApp
 
             this.ValidatePersonalInfo(personalInfo);
 
-            long position = (id - 1) * RecordSize;
-            if (position >= this.fileStream.Length)
-            {
-                throw new ArgumentException($"Record with id {id} does not exist.", nameof(id));
-            }
-
-            this.fileStream.Seek(position, SeekOrigin.Begin);
-
+            long fileLength = this.fileStream.Length;
             byte[] buffer = new byte[RecordSize];
-            this.fileStream.Read(buffer, 0, RecordSize);
 
-            using (MemoryStream memoryStream = new MemoryStream(buffer))
-            using (BinaryReader reader = new BinaryReader(memoryStream))
+            for (long position = 0; position < fileLength; position += RecordSize)
             {
-                short status = reader.ReadInt16();
-                if (status != ActiveStatus)
+                this.fileStream.Seek(position, SeekOrigin.Begin);
+                this.fileStream.Read(buffer, 0, RecordSize);
+
+                using (var memoryStream = new MemoryStream(buffer))
+                using (var reader = new BinaryReader(memoryStream))
                 {
-                    throw new ArgumentException($"Record with id {id} does not exist or has been deleted.", nameof(id));
+                    short status = reader.ReadInt16();
+                    int recordId = reader.ReadInt32();
+
+                    if (status == ActiveStatus && recordId == id)
+                    {
+                        this.fileStream.Seek(position, SeekOrigin.Begin);
+                        using (var writer = new BinaryWriter(this.fileStream, Encoding.ASCII, true))
+                        {
+                            writer.Write(ActiveStatus);
+                            writer.Write(id);
+                            writer.Write(Encoding.ASCII.GetBytes(personalInfo.FirstName.PadRight(60)));
+                            writer.Write(Encoding.ASCII.GetBytes(personalInfo.LastName.PadRight(60)));
+                            writer.Write(personalInfo.DateOfBirth.Year);
+                            writer.Write(personalInfo.DateOfBirth.Month);
+                            writer.Write(personalInfo.DateOfBirth.Day);
+                            writer.Write(personalInfo.Age);
+                            writer.Write(personalInfo.Salary);
+                            writer.Write((short)personalInfo.Gender);
+                        }
+
+                        this.fileStream.Flush();
+                        return;
+                    }
                 }
             }
-
-            this.fileStream.Seek(position, SeekOrigin.Begin);
-
-            using (MemoryStream memoryStream = new MemoryStream(buffer))
-            using (BinaryWriter writer = new BinaryWriter(memoryStream))
-            {
-                writer.Write((short)1); // Status (2 bytes)
-                writer.Write(id); // Id (4 bytes)
-                writer.Write(Encoding.ASCII.GetBytes(personalInfo.FirstName.PadRight(60))); // FirstName (120 bytes)
-                writer.Write(Encoding.ASCII.GetBytes(personalInfo.LastName.PadRight(60))); // LastName (120 bytes)
-                writer.Write(personalInfo.DateOfBirth.Year); // Year (4 bytes)
-                writer.Write(personalInfo.DateOfBirth.Month); // Month (4 bytes)
-                writer.Write(personalInfo.DateOfBirth.Day); // Day (4 bytes)
-                writer.Write(personalInfo.Age); // Age (2 bytes)
-                writer.Write(personalInfo.Salary); // Salary (8 bytes)
-                writer.Write(personalInfo.Gender); // Gender (2 bytes)
-            }
-
-            this.fileStream.Write(buffer, 0, RecordSize);
-            this.fileStream.Flush();
         }
 
         /// <inheritdoc/>
@@ -345,7 +368,7 @@ namespace FileCabinetApp
 
         private static string DefaultRecordPrinter(FileCabinetRecord record)
         {
-            return $"#{record.Id}, {record.FirstName.TrimEnd()}, {record.LastName.TrimEnd()}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
+            return $"#{record.Id}, {record.FirstName?.TrimEnd()}, {record.LastName?.TrimEnd()}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
         }
 
         private void ValidatePersonalInfo(PersonalInfo personalInfo)

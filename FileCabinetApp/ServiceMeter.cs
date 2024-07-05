@@ -21,6 +21,12 @@ namespace FileCabinetApp
             this.stopwatch = new Stopwatch();
         }
 
+        /// <summary>
+        /// Gets the service.
+        /// </summary>
+        /// <value>
+        /// The service.
+        /// </value>
         public IFileCabinetService Service => this.service;
 
         /// <inheritdoc/>
@@ -128,6 +134,16 @@ namespace FileCabinetApp
             var result = this.service.PurgeRecords();
             this.stopwatch.Stop();
             Console.WriteLine($"PurgeRecords method execution time: {this.stopwatch.ElapsedTicks} ticks");
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public bool RecordExists(int id)
+        {
+            this.stopwatch.Restart();
+            var result = this.service.RecordExists(id);
+            this.stopwatch.Stop();
+            Console.WriteLine($"RecordExists method execution time: {this.stopwatch.ElapsedTicks} ticks");
             return result;
         }
     }

@@ -107,6 +107,13 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public bool RecordExists(int id)
+        {
+            this.Log("RecordExists", $"Id: {id}");
+            return this.service.RecordExists(id);
+        }
+
+        /// <inheritdoc/>
         public void Dispose()
         {
             this.Dispose(true);

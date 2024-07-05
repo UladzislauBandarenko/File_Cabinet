@@ -15,6 +15,9 @@ namespace FileCabinetApp
         private readonly Dictionary<string, List<FileCabinetRecord>> dateOfBirthIndex = new Dictionary<string, List<FileCabinetRecord>>(StringComparer.OrdinalIgnoreCase);
         private readonly IRecordValidator validator;
 
+        // Add a dictionary to store memoized results
+        private readonly Dictionary<string, ReadOnlyCollection<FileCabinetRecord>> memoizedResults = new Dictionary<string, ReadOnlyCollection<FileCabinetRecord>>();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="FileCabinetMemoryService"/> class.
         /// </summary>
@@ -118,6 +121,8 @@ namespace FileCabinetApp
             AddToIndex(this.lastNameIndex, personalInfo.LastName, record);
             AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), record);
 
+            this.ClearMemoizedResults();
+
             return record.Id;
         }
 
@@ -151,6 +156,8 @@ namespace FileCabinetApp
             AddToIndex(this.firstNameIndex, personalInfo.FirstName, record);
             AddToIndex(this.lastNameIndex, personalInfo.LastName, record);
             AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), record);
+
+            this.ClearMemoizedResults();
 
             return record.Id;
         }
@@ -207,6 +214,8 @@ namespace FileCabinetApp
                 this.RemoveFromIndices(record);
             }
 
+            this.ClearMemoizedResults();
+
             return new ReadOnlyCollection<int>(deletedIds);
         }
 
@@ -234,7 +243,27 @@ namespace FileCabinetApp
                 }
             }
 
+            this.ClearMemoizedResults();
+
             return updatedCount;
+        }
+
+        /// <summary>
+        /// Selects the records.
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="conditions">The conditions.</param>
+        /// <returns>The records.</returns>
+        public IEnumerable<FileCabinetRecord> SelectRecords(List<string> fields, Dictionary<string, string> conditions)
+        {
+            IEnumerable<FileCabinetRecord> records = this.records;
+
+            if (conditions != null && conditions.Count > 0)
+            {
+                records = records.Where(record => MatchesConditions(record, conditions));
+            }
+
+            return records;
         }
 
         /// <inheritdoc/>
@@ -264,21 +293,45 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
         {
-            return new ReadOnlyCollection<FileCabinetRecord>(FindByIndex(this.firstNameIndex, firstName));
+            string key = $"FirstName:{firstName}";
+            if (this.memoizedResults.TryGetValue(key, out var cachedResult))
+            {
+                return cachedResult;
+            }
+
+            var result = new ReadOnlyCollection<FileCabinetRecord>(FindByIndex(this.firstNameIndex, firstName));
+            this.memoizedResults[key] = result;
+            return result;
         }
 
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName)
         {
-            return new ReadOnlyCollection<FileCabinetRecord>(FindByIndex(this.lastNameIndex, lastName));
+            string key = $"LastName:{lastName}";
+            if (this.memoizedResults.TryGetValue(key, out var cachedResult))
+            {
+                return cachedResult;
+            }
+
+            var result = new ReadOnlyCollection<FileCabinetRecord>(FindByIndex(this.lastNameIndex, lastName));
+            this.memoizedResults[key] = result;
+            return result;
         }
 
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
+            string key = $"DateOfBirth:{dateOfBirth}";
+            if (this.memoizedResults.TryGetValue(key, out var cachedResult))
+            {
+                return cachedResult;
+            }
+
             if (DateTime.TryParse(dateOfBirth, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
             {
-                return new ReadOnlyCollection<FileCabinetRecord>(FindByIndex(this.dateOfBirthIndex, date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)));
+                var result = new ReadOnlyCollection<FileCabinetRecord>(FindByIndex(this.dateOfBirthIndex, date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)));
+                this.memoizedResults[key] = result;
+                return result;
             }
 
             return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
@@ -483,6 +536,11 @@ namespace FileCabinetApp
             AddToIndex(this.firstNameIndex, record.FirstName, record);
             AddToIndex(this.lastNameIndex, record.LastName, record);
             AddToIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), record);
+        }
+
+        private void ClearMemoizedResults()
+        {
+            this.memoizedResults.Clear();
         }
     }
 }

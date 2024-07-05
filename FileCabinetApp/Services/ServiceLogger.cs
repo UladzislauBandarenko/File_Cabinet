@@ -128,6 +128,13 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public IEnumerable<FileCabinetRecord> SelectRecords(List<string> fields, Dictionary<string, string> conditions)
+        {
+            this.Log("SelectRecords", $"Fields: {fields}, Conditions: {conditions}");
+            return this.service.SelectRecords(fields, conditions);
+        }
+
+        /// <inheritdoc/>
         public void Dispose()
         {
             this.Dispose(true);

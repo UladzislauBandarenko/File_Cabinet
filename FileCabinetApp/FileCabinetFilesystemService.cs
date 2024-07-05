@@ -432,7 +432,6 @@ namespace FileCabinetApp
             }
 
             positions.Add(position);
-            Console.WriteLine($"Added position {position} to index for key '{trimmedKey}'");
         }
 
         private static void RemoveFromIndex(Dictionary<string, List<long>> index, string key, long position)

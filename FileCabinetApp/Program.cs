@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using FileCabinetApp.CommandHandlers;
-using FileCabinetApp.HandlersAndCommands;
+using FileCabinetApp.Models;
 using FileCabinetApp.Validators;
 using Microsoft.Extensions.Configuration;
 
@@ -22,12 +22,13 @@ public static class Program
         new HelpMessage("stat", "prints the number of records", "The 'stat' command prints the number of records."),
         new HelpMessage("create", "creates a new record", "The 'create' command creates a new record."),
         new HelpMessage("list", "lists all records", "The 'list' command lists all records."),
-        new HelpMessage("edit", "edits an existing record", "The 'edit' command edits an existing record."),
         new HelpMessage("find", "finds records by property", "The 'find' command finds records by property. Usage: find <property> <value>"),
         new HelpMessage("export", "exports records to a file", "The 'export' command exports all records to a file. Usage: export [csv|xml] <filename>"),
         new HelpMessage("import", "imports records from a file", "The 'import' command imports records from a file. Usage: import [csv|xml] <filename>"),
-        new HelpMessage("remove", "removes a record", "The 'remove' command removes a record. Usage: remove <id>"),
         new HelpMessage("purge", "purges all records", "The 'purge' command purges all records."),
+        new HelpMessage("insert", "inserts a new record", "The 'insert' command inserts a new record. Usage: insert (id, firstname, lastname, dateofbirth, height, weight, gender) values (<id>, <firstname>, <lastname>, <dateofbirth>, <height>, <weight>, <gender>)"),
+        new HelpMessage("delete", "deletes records", "The 'delete' command deletes records. Usage: delete where <field>=<value>"),
+        new HelpMessage("update", "updates records", "The 'update' command updates records. Usage: update set <field1>=<value1>, <field2>=<value2>, ... where <field3>=<value3>, <field4>=<value4>, ..."),
     };
 
     private static IFileCabinetService? fileCabinetService;
@@ -166,25 +167,27 @@ public static class Program
         var helpHandler = new HelpCommandHandler(HelpMessages);
         var exitHandler = new ExitCommandHandler(isRunning => Program.isRunning = isRunning);
         var statHandler = new StatCommandHandler(fileCabinetService);
-        var createHandler = new CreateCommandHandler(fileCabinetService);
+        var createHandler = new CreateCommandHandler(fileCabinetService, HelpMessages);
         var listHandler = new ListCommandHandler(fileCabinetService);
-        var editHandler = new EditCommandHandler(fileCabinetService);
-        var findHandler = new FindCommandHandler(fileCabinetService);
-        var exportHandler = new ExportCommandHandler(fileCabinetService);
-        var importHandler = new ImportCommandHandler(fileCabinetService);
-        var removeHandler = new RemoveCommandHandler(fileCabinetService);
+        var findHandler = new FindCommandHandler(fileCabinetService, HelpMessages);
+        var exportHandler = new ExportCommandHandler(fileCabinetService, HelpMessages);
+        var importHandler = new ImportCommandHandler(fileCabinetService, HelpMessages);
         var purgeHandler = new PurgeCommandHandler(fileCabinetService);
+        var insertCommandHandler = new InsertCommandHandler(fileCabinetService, HelpMessages);
+        var deleteCommandHandler = new DeleteCommandHandler(fileCabinetService, HelpMessages);
+        var updateCommandHandler = new UpdateCommandHandler(fileCabinetService, HelpMessages);
 
         helpHandler.SetNext(exitHandler);
         exitHandler.SetNext(statHandler);
         statHandler.SetNext(createHandler);
         createHandler.SetNext(listHandler);
-        listHandler.SetNext(editHandler);
-        editHandler.SetNext(findHandler);
+        listHandler.SetNext(findHandler);
         findHandler.SetNext(exportHandler);
         exportHandler.SetNext(importHandler);
-        importHandler.SetNext(removeHandler);
-        removeHandler.SetNext(purgeHandler);
+        importHandler.SetNext(purgeHandler);
+        purgeHandler.SetNext(insertCommandHandler);
+        insertCommandHandler.SetNext(deleteCommandHandler);
+        deleteCommandHandler.SetNext(updateCommandHandler);
 
         return helpHandler;
     }

@@ -1,4 +1,4 @@
-namespace FileCabinetApp.HandlersAndCommands;
+namespace FileCabinetApp.Models;
 
 /// <summary>
 /// Help message.

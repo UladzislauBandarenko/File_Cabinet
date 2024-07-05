@@ -32,6 +32,27 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public int InsertRecord(int id, PersonalInfo personalInfo)
+        {
+            this.Log("InsertRecord", $"Id: {id}, PersonalInfo: {personalInfo}");
+            return this.service.InsertRecord(id, personalInfo);
+        }
+
+        /// <inheritdoc/>
+        public ReadOnlyCollection<int> DeleteRecords(string field, string value)
+        {
+            this.Log("DeleteRecords", $"Field: {field}, Value: {value}");
+            return this.service.DeleteRecords(field, value);
+        }
+
+        /// <inheritdoc/>
+        public int UpdateRecords(Dictionary<string, string> fieldsToUpdate, Dictionary<string, string> conditions)
+        {
+            this.Log("UpdateRecords", $"FieldsToUpdate: {fieldsToUpdate}, Conditions: {conditions}");
+            return this.service.UpdateRecords(fieldsToUpdate, conditions);
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             if (printer is null)
@@ -48,13 +69,6 @@ namespace FileCabinetApp
         {
             this.Log("GetStat");
             return this.service.GetStat();
-        }
-
-        /// <inheritdoc/>
-        public void EditRecord(int id, PersonalInfo personalInfo)
-        {
-            this.Log("EditRecord", $"Id: {id}, PersonalInfo: {personalInfo}");
-            this.service.EditRecord(id, personalInfo);
         }
 
         /// <inheritdoc/>

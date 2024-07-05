@@ -122,6 +122,122 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public int InsertRecord(int id, PersonalInfo personalInfo)
+        {
+            if (personalInfo is null)
+            {
+                throw new ArgumentNullException(nameof(personalInfo));
+            }
+
+            this.ValidatePersonalInfo(personalInfo);
+
+            if (this.records.Any(r => r.Id == id))
+            {
+                throw new ArgumentException($"Record with id {id} already exists.", nameof(id));
+            }
+
+            var record = new FileCabinetRecord
+            {
+                Id = id,
+                FirstName = personalInfo.FirstName,
+                LastName = personalInfo.LastName,
+                DateOfBirth = personalInfo.DateOfBirth,
+                Age = personalInfo.Age,
+                Salary = personalInfo.Salary,
+                Gender = personalInfo.Gender,
+            };
+
+            this.records.Add(record);
+            AddToIndex(this.firstNameIndex, personalInfo.FirstName, record);
+            AddToIndex(this.lastNameIndex, personalInfo.LastName, record);
+            AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), record);
+
+            return record.Id;
+        }
+
+        /// <inheritdoc/>
+        public ReadOnlyCollection<int> DeleteRecords(string field, string value)
+        {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            var deletedIds = new List<int>();
+            var recordsToRemove = new List<FileCabinetRecord>();
+
+            foreach (var record in this.records)
+            {
+                bool match = false;
+                switch (field.ToLowerInvariant())
+                {
+                    case "id":
+                        match = record.Id.ToString(CultureInfo.InvariantCulture) == value;
+                        break;
+                    case "firstname":
+                        match = record.FirstName?.Equals(value, StringComparison.OrdinalIgnoreCase) ?? false;
+                        break;
+                    case "lastname":
+                        match = record.LastName?.Equals(value, StringComparison.OrdinalIgnoreCase) ?? false;
+                        break;
+                    case "dateofbirth":
+                        match = record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) == value;
+                        break;
+                    case "age":
+                        match = record.Age.ToString(CultureInfo.InvariantCulture) == value;
+                        break;
+                    case "salary":
+                        match = record.Salary.ToString(CultureInfo.InvariantCulture) == value;
+                        break;
+                    case "gender":
+                        match = record.Gender.ToString().Equals(value, StringComparison.OrdinalIgnoreCase);
+                        break;
+                }
+
+                if (match)
+                {
+                    deletedIds.Add(record.Id);
+                    recordsToRemove.Add(record);
+                }
+            }
+
+            foreach (var record in recordsToRemove)
+            {
+                this.records.Remove(record);
+                this.RemoveFromIndices(record);
+            }
+
+            return new ReadOnlyCollection<int>(deletedIds);
+        }
+
+        /// <inheritdoc/>
+        public int UpdateRecords(Dictionary<string, string> fieldsToUpdate, Dictionary<string, string> conditions)
+        {
+            if (fieldsToUpdate is null)
+            {
+                throw new ArgumentNullException(nameof(fieldsToUpdate));
+            }
+
+            if (conditions is null)
+            {
+                throw new ArgumentNullException(nameof(conditions));
+            }
+
+            int updatedCount = 0;
+
+            foreach (var record in this.records)
+            {
+                if (MatchesConditions(record, conditions))
+                {
+                    UpdateRecord(record, fieldsToUpdate);
+                    updatedCount++;
+                }
+            }
+
+            return updatedCount;
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             return new ReadOnlyCollection<FileCabinetRecord>(this.records.Select(r => new FileCabinetRecord
@@ -144,32 +260,6 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public void EditRecord(int id, PersonalInfo personalInfo)
-        {
-            if (personalInfo is null)
-            {
-                throw new ArgumentNullException(nameof(personalInfo));
-            }
-
-            var record = this.records.Find(r => r.Id == id);
-            if (record == null)
-            {
-                throw new ArgumentException($"Record with id {id} does not exist.", nameof(id));
-            }
-
-            this.ValidatePersonalInfo(personalInfo);
-
-            this.RemoveFromIndices(record);
-
-            record.FirstName = personalInfo.FirstName;
-            record.LastName = personalInfo.LastName;
-            record.DateOfBirth = personalInfo.DateOfBirth;
-            record.Age = personalInfo.Age;
-            record.Salary = personalInfo.Salary;
-            record.Gender = personalInfo.Gender;
-
-            this.AddToIndices(record);
-        }
 
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
@@ -231,6 +321,111 @@ namespace FileCabinetApp
             }
 
             index[key].Add(record);
+        }
+
+        private static bool MatchesConditions(FileCabinetRecord record, Dictionary<string, string> conditions)
+        {
+            foreach (var condition in conditions)
+            {
+                switch (condition.Key.ToLowerInvariant())
+                {
+                    case "id":
+                        if (record.Id.ToString(CultureInfo.InvariantCulture) != condition.Value)
+                        {
+                            return false;
+                        }
+
+                        break;
+                    case "firstname":
+                        if (record.FirstName?.Equals(condition.Value, StringComparison.OrdinalIgnoreCase) != true)
+                        {
+                            return false;
+                        }
+
+                        break;
+                    case "lastname":
+                        if (record.LastName?.Equals(condition.Value, StringComparison.OrdinalIgnoreCase) != true)
+                        {
+                            return false;
+                        }
+
+                        break;
+                    case "dateofbirth":
+                        if (record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) != condition.Value)
+                        {
+                            return false;
+                        }
+
+                        break;
+                    case "age":
+                        if (record.Age.ToString(CultureInfo.InvariantCulture) != condition.Value)
+                        {
+                            return false;
+                        }
+
+                        break;
+                    case "salary":
+                        if (record.Salary.ToString(CultureInfo.InvariantCulture) != condition.Value)
+                        {
+                            return false;
+                        }
+
+                        break;
+                    case "gender":
+                        if (record.Gender.ToString().Equals(condition.Value, StringComparison.OrdinalIgnoreCase) != true)
+                        {
+                            return false;
+                        }
+
+                        break;
+                }
+            }
+
+            return true;
+        }
+
+        private static void UpdateRecord(FileCabinetRecord record, Dictionary<string, string> fieldsToUpdate)
+        {
+            foreach (var field in fieldsToUpdate)
+            {
+                switch (field.Key.ToLowerInvariant())
+                {
+                    case "firstname":
+                        record.FirstName = field.Value;
+                        break;
+                    case "lastname":
+                        record.LastName = field.Value;
+                        break;
+                    case "dateofbirth":
+                        if (DateTime.TryParse(field.Value, out DateTime dateOfBirth))
+                        {
+                            record.DateOfBirth = dateOfBirth;
+                        }
+
+                        break;
+                    case "age":
+                        if (short.TryParse(field.Value, out short age))
+                        {
+                            record.Age = age;
+                        }
+
+                        break;
+                    case "salary":
+                        if (decimal.TryParse(field.Value, out decimal salary))
+                        {
+                            record.Salary = salary;
+                        }
+
+                        break;
+                    case "gender":
+                        if (char.TryParse(field.Value, out char gender))
+                        {
+                            record.Gender = gender;
+                        }
+
+                        break;
+                }
+            }
         }
 
         private void ValidatePersonalInfo(PersonalInfo personalInfo)

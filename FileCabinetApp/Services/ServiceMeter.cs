@@ -40,6 +40,36 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public int InsertRecord(int id, PersonalInfo personalInfo)
+        {
+            this.stopwatch.Restart();
+            var result = this.service.InsertRecord(id, personalInfo);
+            this.stopwatch.Stop();
+            Console.WriteLine($"InsertRecord method execution time: {this.stopwatch.ElapsedTicks} ticks");
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public ReadOnlyCollection<int> DeleteRecords(string field, string value)
+        {
+            this.stopwatch.Restart();
+            var result = this.service.DeleteRecords(field, value);
+            this.stopwatch.Stop();
+            Console.WriteLine($"DeleteRecords method execution time: {this.stopwatch.ElapsedTicks} ticks");
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public int UpdateRecords(Dictionary<string, string> fieldsToUpdate, Dictionary<string, string> conditions)
+        {
+            this.stopwatch.Restart();
+            var result = this.service.UpdateRecords(fieldsToUpdate, conditions);
+            this.stopwatch.Stop();
+            Console.WriteLine($"UpdateRecords method execution time: {this.stopwatch.ElapsedTicks} ticks");
+            return result;
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             this.stopwatch.Restart();
@@ -57,15 +87,6 @@ namespace FileCabinetApp
             this.stopwatch.Stop();
             Console.WriteLine($"GetStat method execution time: {this.stopwatch.ElapsedTicks} ticks");
             return result;
-        }
-
-        /// <inheritdoc/>
-        public void EditRecord(int id, PersonalInfo personalInfo)
-        {
-            this.stopwatch.Restart();
-            this.service.EditRecord(id, personalInfo);
-            this.stopwatch.Stop();
-            Console.WriteLine($"EditRecord method execution time: {this.stopwatch.ElapsedTicks} ticks");
         }
 
         /// <inheritdoc/>

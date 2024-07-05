@@ -15,6 +15,9 @@ namespace FileCabinetApp
         private const short InactiveStatus = 0;
         private readonly IRecordValidator validator;
         private readonly FileStream fileStream;
+        private readonly Dictionary<string, List<long>> firstNameIndex = new Dictionary<string, List<long>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, List<long>> lastNameIndex = new Dictionary<string, List<long>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, List<long>> dateOfBirthIndex = new Dictionary<string, List<long>>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileCabinetFilesystemService"/> class.
@@ -30,6 +33,7 @@ namespace FileCabinetApp
 
             this.validator = validatorBuilder.Build();
             this.fileStream = fileStream;
+            this.InitializeIndices();
         }
 
         /// <inheritdoc/>
@@ -214,9 +218,13 @@ namespace FileCabinetApp
                 writer.Write(personalInfo.Gender); // Gender (2 bytes)
             }
 
-            this.fileStream.Seek(0, SeekOrigin.End);
+            long recordPosition = this.fileStream.Position;
             this.fileStream.Write(record, 0, RecordSize);
             this.fileStream.Flush();
+
+            this.AddToIndex(this.firstNameIndex, personalInfo.FirstName, recordPosition);
+            this.AddToIndex(this.lastNameIndex, personalInfo.LastName, recordPosition);
+            this.AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd"), recordPosition);
 
             return nextId;
         }
@@ -296,6 +304,10 @@ namespace FileCabinetApp
 
                     if (status == ActiveStatus && recordId == id)
                     {
+                        string oldFirstName = new string(reader.ReadChars(60)).TrimEnd('\0');
+                        string oldLastName = new string(reader.ReadChars(60)).TrimEnd('\0');
+                        DateTime oldDateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
+
                         this.fileStream.Seek(position, SeekOrigin.Begin);
                         using (var writer = new BinaryWriter(this.fileStream, Encoding.ASCII, true))
                         {
@@ -311,6 +323,14 @@ namespace FileCabinetApp
                             writer.Write((short)personalInfo.Gender);
                         }
 
+                        this.RemoveFromIndex(this.firstNameIndex, oldFirstName, position);
+                        this.RemoveFromIndex(this.lastNameIndex, oldLastName, position);
+                        this.RemoveFromIndex(this.dateOfBirthIndex, oldDateOfBirth.ToString("yyyy-MM-dd"), position);
+
+                        this.AddToIndex(this.firstNameIndex, personalInfo.FirstName, position);
+                        this.AddToIndex(this.lastNameIndex, personalInfo.LastName, position);
+                        this.AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd"), position);
+
                         this.fileStream.Flush();
                         return;
                     }
@@ -321,37 +341,33 @@ namespace FileCabinetApp
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
         {
-            var result = this.FindByPredicate(record =>
+            if (this.firstNameIndex.TryGetValue(firstName, out var positions))
             {
-                return !string.IsNullOrEmpty(record.FirstName) &&
-                    record.FirstName.Trim().Equals(firstName.Trim(), StringComparison.OrdinalIgnoreCase);
-            });
-            Console.WriteLine($"Found {result.Count} records");
-            return result;
+                return new ReadOnlyCollection<FileCabinetRecord>(
+                    positions.Select(position => this.ReadRecordAtPosition(position)).ToList());
+            }
+            return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
         }
 
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName)
         {
-            var result = this.FindByPredicate(record =>
+            if (this.lastNameIndex.TryGetValue(lastName, out var positions))
             {
-                return !string.IsNullOrEmpty(record.LastName) &&
-                       record.LastName.Trim().Equals(lastName.Trim(), StringComparison.OrdinalIgnoreCase);
-            });
-            Console.WriteLine($"Found {result.Count} records");
-            return result;
+                return new ReadOnlyCollection<FileCabinetRecord>(
+                    positions.Select(position => this.ReadRecordAtPosition(position)).ToList());
+            }
+            return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
         }
 
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
             Console.WriteLine($"Searching for dateOfBirth: '{dateOfBirth}'");
-            if (DateTime.TryParse(dateOfBirth, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
+            if (this.dateOfBirthIndex.TryGetValue(dateOfBirth, out var positions))
             {
-                var result = this.FindByPredicate(record =>
-                {
-                    return record.DateOfBirth.Date == date.Date;
-                });
+                var result = new ReadOnlyCollection<FileCabinetRecord>(
+                    positions.Select(position => this.ReadRecordAtPosition(position)).ToList());
                 Console.WriteLine($"Found {result.Count} records");
                 return result;
             }
@@ -404,56 +420,69 @@ namespace FileCabinetApp
             }
         }
 
-        private ReadOnlyCollection<FileCabinetRecord> FindByPredicate(Func<FileCabinetRecord, bool> predicate)
+        private void AddToIndex(Dictionary<string, List<long>> index, string key, long position)
         {
-            var result = new List<FileCabinetRecord>();
-            byte[] buffer = new byte[RecordSize];
-
-            this.fileStream.Seek(0, SeekOrigin.Begin);
-
-            while (this.fileStream.Read(buffer, 0, RecordSize) == RecordSize)
+            if (!index.TryGetValue(key, out var positions))
             {
-                using var memoryStream = new MemoryStream(buffer);
-                using var reader = new BinaryReader(memoryStream);
+                positions = new List<long>();
+                index[key] = positions;
+            }
+            positions.Add(position);
+        }
 
-                short status = reader.ReadInt16();
-                if (status != ActiveStatus)
+        private void RemoveFromIndex(Dictionary<string, List<long>> index, string key, long position)
+        {
+            if (index.TryGetValue(key, out var positions))
+            {
+                positions.Remove(position);
+                if (positions.Count == 0)
                 {
-                    continue;
-                }
-
-                var record = new FileCabinetRecord
-                {
-                    Id = reader.ReadInt32(),
-                    FirstName = Encoding.ASCII.GetString(reader.ReadBytes(60)).TrimEnd('\0', ' '),
-                    LastName = Encoding.ASCII.GetString(reader.ReadBytes(60)).TrimEnd('\0', ' '),
-                };
-
-                int year = reader.ReadInt32();
-                int month = reader.ReadInt32();
-                int day = reader.ReadInt32();
-
-                try
-                {
-                    record.DateOfBirth = new DateTime(year, month, day, 0, 0, 0, 0, DateTimeKind.Local);
-                }
-                catch (ArgumentOutOfRangeException)
-                {
-                    // Skip this record if the date is invalid
-                    continue;
-                }
-
-                record.Age = reader.ReadInt16();
-                record.Salary = reader.ReadDecimal();
-                record.Gender = (char)reader.ReadInt16();
-
-                if (predicate(record))
-                {
-                    result.Add(record);
+                    index.Remove(key);
                 }
             }
+        }
 
-            return new ReadOnlyCollection<FileCabinetRecord>(result);
+        private FileCabinetRecord? ReadRecordAtPosition(long position)
+        {
+            this.fileStream.Seek(position, SeekOrigin.Begin);
+            byte[] buffer = new byte[RecordSize];
+            this.fileStream.Read(buffer, 0, RecordSize);
+
+            using var memoryStream = new MemoryStream(buffer);
+            using var reader = new BinaryReader(memoryStream);
+
+            short status = reader.ReadInt16();
+            if (status != ActiveStatus)
+            {
+                return null;
+            }
+
+            return new FileCabinetRecord
+            {
+                Id = reader.ReadInt32(),
+                FirstName = new string(reader.ReadChars(60)).TrimEnd('\0'),
+                LastName = new string(reader.ReadChars(60)).TrimEnd('\0'),
+                DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), 0, 0, 0, 0, DateTimeKind.Local),
+                Age = reader.ReadInt16(),
+                Salary = reader.ReadDecimal(),
+                Gender = reader.ReadChar(),
+            };
+        }
+
+        private void InitializeIndices()
+        {
+            long position = 0;
+            while (position < this.fileStream.Length)
+            {
+                var record = this.ReadRecordAtPosition(position);
+                if (record != null)
+                {
+                    this.AddToIndex(this.firstNameIndex, record.FirstName, position);
+                    this.AddToIndex(this.lastNameIndex, record.LastName, position);
+                    this.AddToIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd"), position);
+                }
+                position += RecordSize;
+            }
         }
     }
 }

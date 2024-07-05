@@ -35,13 +35,6 @@ namespace FileCabinetApp
         int GetStat();
 
         /// <summary>
-        /// Edits a record in the file cabinet.
-        /// </summary>
-        /// <param name="id">The id of the record to edit.</param>
-        /// <param name="personalInfo">The personal information of the record.</param>
-        void EditRecord(int id, PersonalInfo personalInfo);
-
-        /// <summary>
         /// Finds records by first name.
         /// </summary>
         /// <param name="firstName">The first name to search for.</param>

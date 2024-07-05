@@ -391,7 +391,7 @@ namespace FileCabinetApp
                         if (UpdateRecord(record, fieldsToUpdate))
                         {
                             this.fileStream.Seek(position, SeekOrigin.Begin);
-                            WriteRecord(record);
+                            this.WriteRecord(record);
                             updatedCount++;
                         }
                     }
@@ -449,54 +449,6 @@ namespace FileCabinetApp
         {
             long fileLength = this.fileStream.Length;
             return (int)(fileLength / RecordSize);
-        }
-
-        /// <inheritdoc/>
-        public void EditRecord(int id, PersonalInfo personalInfo)
-        {
-            if (personalInfo is null)
-            {
-                throw new ArgumentNullException(nameof(personalInfo));
-            }
-
-            this.ValidatePersonalInfo(personalInfo);
-
-            long fileLength = this.fileStream.Length;
-            byte[] buffer = new byte[RecordSize];
-
-            for (long position = 0; position < fileLength; position += RecordSize)
-            {
-                this.fileStream.Seek(position, SeekOrigin.Begin);
-                this.fileStream.Read(buffer, 0, RecordSize);
-
-                using (var memoryStream = new MemoryStream(buffer))
-                using (var reader = new BinaryReader(memoryStream))
-                {
-                    short status = reader.ReadInt16();
-                    int recordId = reader.ReadInt32();
-
-                    if (status == ActiveStatus && recordId == id)
-                    {
-                        this.fileStream.Seek(position, SeekOrigin.Begin);
-                        using (var writer = new BinaryWriter(this.fileStream, Encoding.ASCII, true))
-                        {
-                            writer.Write(ActiveStatus);
-                            writer.Write(id);
-                            writer.Write(Encoding.ASCII.GetBytes(personalInfo.FirstName.PadRight(60)));
-                            writer.Write(Encoding.ASCII.GetBytes(personalInfo.LastName.PadRight(60)));
-                            writer.Write(personalInfo.DateOfBirth.Year);
-                            writer.Write(personalInfo.DateOfBirth.Month);
-                            writer.Write(personalInfo.DateOfBirth.Day);
-                            writer.Write(personalInfo.Age);
-                            writer.Write(personalInfo.Salary);
-                            writer.Write((short)personalInfo.Gender);
-                        }
-
-                        this.fileStream.Flush();
-                        return;
-                    }
-                }
-            }
         }
 
         /// <inheritdoc/>
@@ -559,28 +511,57 @@ namespace FileCabinetApp
                 switch (condition.Key.ToLowerInvariant())
                 {
                     case "id":
-                        if (record.Id.ToString() != condition.Value) return false;
+                        if (record.Id.ToString(CultureInfo.InvariantCulture) != condition.Value)
+                        {
+                            return false;
+                        }
+
                         break;
                     case "firstname":
-                        if (!record.FirstName.Equals(condition.Value, StringComparison.OrdinalIgnoreCase)) return false;
+                        if (record.FirstName is null || !record.FirstName.Equals(condition.Value, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return false;
+                        }
+
                         break;
                     case "lastname":
-                        if (!record.LastName.Equals(condition.Value, StringComparison.OrdinalIgnoreCase)) return false;
+                        if (record.LastName is null || !record.LastName.Equals(condition.Value, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return false;
+                        }
+
                         break;
                     case "dateofbirth":
-                        if (record.DateOfBirth.ToString("yyyy-MM-dd") != condition.Value) return false;
+                        if (record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) != condition.Value)
+                        {
+                            return false;
+                        }
+
                         break;
                     case "age":
-                        if (record.Age.ToString() != condition.Value) return false;
+                        if (record.Age.ToString(CultureInfo.InvariantCulture) != condition.Value)
+                        {
+                            return false;
+                        }
+
                         break;
                     case "salary":
-                        if (record.Salary.ToString(CultureInfo.InvariantCulture) != condition.Value) return false;
+                        if (record.Salary.ToString(CultureInfo.InvariantCulture) != condition.Value)
+                        {
+                            return false;
+                        }
+
                         break;
                     case "gender":
-                        if (record.Gender.ToString() != condition.Value) return false;
+                        if (record.Gender.ToString() != condition.Value)
+                        {
+                            return false;
+                        }
+
                         break;
                 }
             }
+
             return true;
         }
 
@@ -605,6 +586,7 @@ namespace FileCabinetApp
                             record.DateOfBirth = dateOfBirth;
                             updated = true;
                         }
+
                         break;
                     case "age":
                         if (short.TryParse(field.Value, out short age))
@@ -612,6 +594,7 @@ namespace FileCabinetApp
                             record.Age = age;
                             updated = true;
                         }
+
                         break;
                     case "salary":
                         if (decimal.TryParse(field.Value, out decimal salary))
@@ -619,6 +602,7 @@ namespace FileCabinetApp
                             record.Salary = salary;
                             updated = true;
                         }
+
                         break;
                     case "gender":
                         if (char.TryParse(field.Value, out char gender))
@@ -626,9 +610,11 @@ namespace FileCabinetApp
                             record.Gender = gender;
                             updated = true;
                         }
+
                         break;
                 }
             }
+
             return updated;
         }
 
@@ -723,8 +709,8 @@ namespace FileCabinetApp
             {
                 writer.Write(ActiveStatus);
                 writer.Write(record.Id);
-                writer.Write(Encoding.ASCII.GetBytes(record.FirstName.PadRight(60)));
-                writer.Write(Encoding.ASCII.GetBytes(record.LastName.PadRight(60)));
+                writer.Write(Encoding.ASCII.GetBytes((record.FirstName ?? string.Empty).PadRight(60)));
+                writer.Write(Encoding.ASCII.GetBytes((record.LastName ?? string.Empty).PadRight(60)));
                 writer.Write(record.DateOfBirth.Year);
                 writer.Write(record.DateOfBirth.Month);
                 writer.Write(record.DateOfBirth.Day);

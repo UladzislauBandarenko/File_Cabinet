@@ -90,15 +90,6 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public void EditRecord(int id, PersonalInfo personalInfo)
-        {
-            this.stopwatch.Restart();
-            this.service.EditRecord(id, personalInfo);
-            this.stopwatch.Stop();
-            Console.WriteLine($"EditRecord method execution time: {this.stopwatch.ElapsedTicks} ticks");
-        }
-
-        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
         {
             this.stopwatch.Restart();

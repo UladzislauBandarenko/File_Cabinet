@@ -260,32 +260,6 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public void EditRecord(int id, PersonalInfo personalInfo)
-        {
-            if (personalInfo is null)
-            {
-                throw new ArgumentNullException(nameof(personalInfo));
-            }
-
-            var record = this.records.Find(r => r.Id == id);
-            if (record == null)
-            {
-                throw new ArgumentException($"Record with id {id} does not exist.", nameof(id));
-            }
-
-            this.ValidatePersonalInfo(personalInfo);
-
-            this.RemoveFromIndices(record);
-
-            record.FirstName = personalInfo.FirstName;
-            record.LastName = personalInfo.LastName;
-            record.DateOfBirth = personalInfo.DateOfBirth;
-            record.Age = personalInfo.Age;
-            record.Salary = personalInfo.Salary;
-            record.Gender = personalInfo.Gender;
-
-            this.AddToIndices(record);
-        }
 
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)

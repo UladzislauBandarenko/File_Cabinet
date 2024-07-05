@@ -72,13 +72,6 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public void EditRecord(int id, PersonalInfo personalInfo)
-        {
-            this.Log("EditRecord", $"Id: {id}, PersonalInfo: {personalInfo}");
-            this.service.EditRecord(id, personalInfo);
-        }
-
-        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
         {
             this.Log("FindByFirstName", $"FirstName: {firstName}");

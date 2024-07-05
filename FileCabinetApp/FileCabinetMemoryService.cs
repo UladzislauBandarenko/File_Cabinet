@@ -8,7 +8,7 @@ namespace FileCabinetApp
     /// <summary>
     /// Represents a service for working with the file cabinet.
     /// </summary>
-    public class FileCabinetMemoryService : IFileCabinetService, IEnumerable<FileCabinetRecord>
+    public class FileCabinetMemoryService : IFileCabinetService
     {
         private readonly List<FileCabinetRecord> records = new List<FileCabinetRecord>();
         private readonly Dictionary<string, List<FileCabinetRecord>> firstNameIndex = new Dictionary<string, List<FileCabinetRecord>>(StringComparer.OrdinalIgnoreCase);
@@ -172,32 +172,61 @@ namespace FileCabinetApp
             this.AddToIndices(record);
         }
 
+        /// <inheritdoc/>
         public IEnumerable<FileCabinetRecord> FindByFirstName(string firstName)
         {
-            // Реализация для FileCabinetMemoryService
-            return this.records.Where(r => string.Equals(r.FirstName, firstName, StringComparison.OrdinalIgnoreCase));
+            foreach (var record in this.records)
+            {
+                if (string.Equals(record.FirstName, firstName, StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return record;
+                }
+            }
         }
 
+        /// <inheritdoc/>
         public IEnumerable<FileCabinetRecord> FindByLastName(string lastName)
         {
-            // Реализация для FileCabinetMemoryService
-            return this.records.Where(r => string.Equals(r.LastName, lastName, StringComparison.OrdinalIgnoreCase));
+            foreach (var record in this.records)
+            {
+                if (string.Equals(record.LastName, lastName, StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return record;
+                }
+            }
         }
 
+        /// <inheritdoc/>
         public IEnumerable<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
-            // Реализация для FileCabinetMemoryService
-            if (DateTime.TryParse(dateOfBirth, out DateTime date))
+            if (DateTime.TryParse(dateOfBirth, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime date))
             {
-                return this.records.Where(r => r.DateOfBirth.Date == date.Date);
+                foreach (var record in this.records)
+                {
+                    if (record.DateOfBirth.Date == date.Date)
+                    {
+                        yield return record;
+                    }
+                }
             }
-            return Enumerable.Empty<FileCabinetRecord>();
         }
 
         /// <inheritdoc/>
         public FileCabinetServiceSnapshot MakeSnapshot()
         {
             return new FileCabinetServiceSnapshot(this.GetRecords(DefaultRecordPrinter));
+        }
+
+        /// <inheritdoc/>
+        public IEnumerator<FileCabinetRecord> GetEnumerator()
+        {
+            return new FileCabinetMemoryIterator(new ReadOnlyCollection<FileCabinetRecord>(this.records));
+        }
+
+        /// <inheritdoc/>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
         }
 
         private static string DefaultRecordPrinter(FileCabinetRecord record)
@@ -211,16 +240,6 @@ namespace FileCabinetApp
             {
                 index[key].Remove(record);
             }
-        }
-
-        private static List<FileCabinetRecord> FindByIndex(Dictionary<string, List<FileCabinetRecord>> index, string key)
-        {
-            if (index.TryGetValue(key, out var records))
-            {
-                return records;
-            }
-
-            return new List<FileCabinetRecord>();
         }
 
         private static void AddToIndex(Dictionary<string, List<FileCabinetRecord>> index, string key, FileCabinetRecord record)
@@ -288,16 +307,6 @@ namespace FileCabinetApp
             AddToIndex(this.firstNameIndex, record.FirstName, record);
             AddToIndex(this.lastNameIndex, record.LastName, record);
             AddToIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), record);
-        }
-
-        public IEnumerator<FileCabinetRecord> GetEnumerator()
-        {
-            return new FileCabinetMemoryIterator(this.records);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
         }
     }
 }

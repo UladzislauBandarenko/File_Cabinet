@@ -30,11 +30,13 @@ namespace FileCabinetApp
         /// </value>
         public IFileCabinetService Service => this.service;
 
+        /// <inheritdoc/>
         public IEnumerator<FileCabinetRecord> GetEnumerator()
         {
             return this.service.GetEnumerator();
         }
 
+        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();

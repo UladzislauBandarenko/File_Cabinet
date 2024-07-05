@@ -2,48 +2,96 @@ using System.Collections;
 
 namespace FileCabinetApp;
 
+/// <summary>
+/// FileCabinetFilesystemIterator class.
+/// </summary>
 public class FileCabinetFilesystemIterator : IEnumerator<FileCabinetRecord>
 {
     private const int RecordSize = 278;
     private const short ActiveStatus = 1;
     private readonly FileStream fileStream;
-    private readonly List<long> positions;
+    private readonly IReadOnlyList<long> positions;
     private int currentIndex = -1;
+    private bool disposed;
 
-    public FileCabinetFilesystemIterator(FileStream fileStream, List<long> positions)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FileCabinetFilesystemIterator"/> class.
+    /// </summary>
+    /// <param name="fileStream">The file stream.</param>
+    /// <param name="positions">The positions.</param>
+    public FileCabinetFilesystemIterator(FileStream fileStream, IReadOnlyList<long> positions)
     {
         this.fileStream = fileStream;
         this.positions = positions;
     }
 
-    public FileCabinetRecord Current { get; private set; }
+    /// <summary>
+    /// Gets the current record.
+    /// </summary>
+    /// <value>
+    /// The current record.
+    /// </value>
+    public FileCabinetRecord Current
+    {
+        get
+        {
+            if (this.currentIndex < 0 || this.currentIndex >= this.positions.Count)
+            {
+                throw new InvalidOperationException("Enumeration has either not started or has already finished.");
+            }
 
+            return this.ReadRecordAtPosition(this.positions[this.currentIndex])
+                ?? throw new InvalidOperationException("Current record is null.");
+        }
+    }
+
+    /// <inheritdoc/>
     object IEnumerator.Current => this.Current;
 
+    /// <inheritdoc/>
     public bool MoveNext()
     {
         if (this.currentIndex < this.positions.Count - 1)
         {
             this.currentIndex++;
-            this.Current = this.ReadRecordAtPosition(this.positions[this.currentIndex]);
             return true;
         }
 
         return false;
     }
 
+    /// <inheritdoc/>
     public void Reset()
     {
         this.currentIndex = -1;
-        this.Current = null;
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
-        // Нет необходимости в освобождении ресурсов
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
     }
 
-    private FileCabinetRecord ReadRecordAtPosition(long position)
+    /// <summary>
+    /// Disposes the specified disposing.
+    /// </summary>
+    /// <param name="disposing">if set to <c>true</c> [disposing].</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!this.disposed)
+        {
+            if (disposing)
+            {
+                // Dispose managed resources
+                this.fileStream?.Dispose();
+            }
+
+            this.disposed = true;
+        }
+    }
+
+    private FileCabinetRecord? ReadRecordAtPosition(long position)
     {
         this.fileStream.Seek(position, SeekOrigin.Begin);
         byte[] buffer = new byte[RecordSize];

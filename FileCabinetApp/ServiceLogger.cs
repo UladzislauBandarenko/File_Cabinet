@@ -25,12 +25,14 @@ namespace FileCabinetApp
             this.logWriter = new StreamWriter(logFilePath, true);
         }
 
+        /// <inheritdoc/>
         public IEnumerator<FileCabinetRecord> GetEnumerator()
         {
             this.Log("GetEnumerator");
             return this.service.GetEnumerator();
         }
 
+        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();

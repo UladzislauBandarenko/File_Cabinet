@@ -9,7 +9,7 @@ namespace FileCabinetApp
     /// <summary>
     /// Represents a service for working with the file cabinet.
     /// </summary>
-    public class FileCabinetFilesystemService : IFileCabinetService, IEnumerable<FileCabinetRecord>
+    public class FileCabinetFilesystemService : IFileCabinetService
     {
         private const int RecordSize = 278;
         private const short ActiveStatus = 1;
@@ -37,14 +37,16 @@ namespace FileCabinetApp
             this.InitializeIndices();
         }
 
+        /// <inheritdoc/>
         public IEnumerator<FileCabinetRecord> GetEnumerator()
         {
             return new FileCabinetRecordEnumerator(this);
         }
 
+        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return this.GetEnumerator();
         }
 
         /// <inheritdoc/>
@@ -233,9 +235,9 @@ namespace FileCabinetApp
             this.fileStream.Write(record, 0, RecordSize);
             this.fileStream.Flush();
 
-            this.AddToIndex(this.firstNameIndex, personalInfo.FirstName, recordPosition);
-            this.AddToIndex(this.lastNameIndex, personalInfo.LastName, recordPosition);
-            this.AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd"), recordPosition);
+            AddToIndex(this.firstNameIndex, personalInfo.FirstName, recordPosition);
+            AddToIndex(this.lastNameIndex, personalInfo.LastName, recordPosition);
+            AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), recordPosition);
 
             return nextId;
         }
@@ -317,7 +319,7 @@ namespace FileCabinetApp
                     {
                         string oldFirstName = new string(reader.ReadChars(60)).TrimEnd('\0');
                         string oldLastName = new string(reader.ReadChars(60)).TrimEnd('\0');
-                        DateTime oldDateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
+                        DateTime oldDateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), 0, 0, 0, 0, DateTimeKind.Local);
 
                         this.fileStream.Seek(position, SeekOrigin.Begin);
                         using (var writer = new BinaryWriter(this.fileStream, Encoding.ASCII, true))
@@ -334,13 +336,13 @@ namespace FileCabinetApp
                             writer.Write((short)personalInfo.Gender);
                         }
 
-                        this.RemoveFromIndex(this.firstNameIndex, oldFirstName, position);
-                        this.RemoveFromIndex(this.lastNameIndex, oldLastName, position);
-                        this.RemoveFromIndex(this.dateOfBirthIndex, oldDateOfBirth.ToString("yyyy-MM-dd"), position);
+                        RemoveFromIndex(this.firstNameIndex, oldFirstName, position);
+                        RemoveFromIndex(this.lastNameIndex, oldLastName, position);
+                        RemoveFromIndex(this.dateOfBirthIndex, oldDateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), position);
 
-                        this.AddToIndex(this.firstNameIndex, personalInfo.FirstName, position);
-                        this.AddToIndex(this.lastNameIndex, personalInfo.LastName, position);
-                        this.AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd"), position);
+                        AddToIndex(this.firstNameIndex, personalInfo.FirstName, position);
+                        AddToIndex(this.lastNameIndex, personalInfo.LastName, position);
+                        AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), position);
 
                         this.fileStream.Flush();
                         return;
@@ -349,6 +351,7 @@ namespace FileCabinetApp
             }
         }
 
+        /// <inheritdoc/>
         public IEnumerable<FileCabinetRecord> FindByFirstName(string firstName)
         {
             Console.WriteLine($"Searching for firstName: '{firstName}'");
@@ -364,9 +367,11 @@ namespace FileCabinetApp
                     }
                 }
             }
+
             Console.WriteLine("No positions found in index");
         }
 
+        /// <inheritdoc/>
         public IEnumerable<FileCabinetRecord> FindByLastName(string lastName)
         {
             Console.WriteLine($"Searching for lastName: '{lastName}'");
@@ -382,9 +387,11 @@ namespace FileCabinetApp
                     }
                 }
             }
+
             Console.WriteLine("No positions found in index");
         }
 
+        /// <inheritdoc/>
         public IEnumerable<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
             Console.WriteLine($"Searching for dateOfBirth: '{dateOfBirth}'");
@@ -400,6 +407,7 @@ namespace FileCabinetApp
                     }
                 }
             }
+
             Console.WriteLine("No positions found in index");
         }
 
@@ -412,6 +420,31 @@ namespace FileCabinetApp
         private static string DefaultRecordPrinter(FileCabinetRecord record)
         {
             return $"#{record.Id}, {record.FirstName?.TrimEnd()}, {record.LastName?.TrimEnd()}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
+        }
+
+        private static void AddToIndex(Dictionary<string, List<long>> index, string key, long position)
+        {
+            string trimmedKey = key.Trim();
+            if (!index.TryGetValue(trimmedKey, out var positions))
+            {
+                positions = new List<long>();
+                index[trimmedKey] = positions;
+            }
+
+            positions.Add(position);
+            Console.WriteLine($"Added position {position} to index for key '{trimmedKey}'");
+        }
+
+        private static void RemoveFromIndex(Dictionary<string, List<long>> index, string key, long position)
+        {
+            if (index.TryGetValue(key, out var positions))
+            {
+                positions.Remove(position);
+                if (positions.Count == 0)
+                {
+                    index.Remove(key);
+                }
+            }
         }
 
         private void ValidatePersonalInfo(PersonalInfo personalInfo)
@@ -444,30 +477,6 @@ namespace FileCabinetApp
             if (!this.validator.ValidateGender(personalInfo.Gender, out errorMessage))
             {
                 throw new ArgumentException(errorMessage, nameof(personalInfo));
-            }
-        }
-
-        private void AddToIndex(Dictionary<string, List<long>> index, string key, long position)
-        {
-            string trimmedKey = key.Trim();
-            if (!index.TryGetValue(trimmedKey, out var positions))
-            {
-                positions = new List<long>();
-                index[trimmedKey] = positions;
-            }
-            positions.Add(position);
-            Console.WriteLine($"Added position {position} to index for key '{trimmedKey}'");
-        }
-
-        private void RemoveFromIndex(Dictionary<string, List<long>> index, string key, long position)
-        {
-            if (index.TryGetValue(key, out var positions))
-            {
-                positions.Remove(position);
-                if (positions.Count == 0)
-                {
-                    index.Remove(key);
-                }
             }
         }
 
@@ -504,15 +513,19 @@ namespace FileCabinetApp
             long position = 0;
             while (position < this.fileStream.Length)
             {
-                var record = this.ReadRecordAtPosition(position);
-                if (record != null)
+                var record = this.ReadRecordAtPosition(position) ?? throw new InvalidDataException();
+                if (record.FirstName == null || record.LastName == null)
                 {
-                    this.AddToIndex(this.firstNameIndex, record.FirstName.Trim(), position);
-                    this.AddToIndex(this.lastNameIndex, record.LastName.Trim(), position);
-                    this.AddToIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd"), position);
+                    continue;
                 }
+
+                AddToIndex(this.firstNameIndex, record.FirstName.Trim(), position);
+                AddToIndex(this.lastNameIndex, record.LastName.Trim(), position);
+                AddToIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), position);
+
                 position += RecordSize;
             }
+
             Console.WriteLine("Indices initialized");
         }
     }

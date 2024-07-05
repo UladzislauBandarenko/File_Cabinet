@@ -4,6 +4,44 @@
         <name>FileCabinetApp</name>
     </assembly>
     <members>
+        <member name="T:FileCabinetApp.FileCabinetFilesystemIterator">
+            <summary>
+            FileCabinetFilesystemIterator class.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemIterator.#ctor(System.IO.FileStream,System.Collections.Generic.IReadOnlyList{System.Int64})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.FileCabinetFilesystemIterator"/> class.
+            </summary>
+            <param name="fileStream">The file stream.</param>
+            <param name="positions">The positions.</param>
+        </member>
+        <member name="P:FileCabinetApp.FileCabinetFilesystemIterator.Current">
+            <summary>
+            Gets the current record.
+            </summary>
+            <value>
+            The current record.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.FileCabinetFilesystemIterator.System#Collections#IEnumerator#Current">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemIterator.MoveNext">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemIterator.Reset">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemIterator.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemIterator.Dispose(System.Boolean)">
+            <summary>
+            Disposes the specified disposing.
+            </summary>
+            <param name="disposing">if set to <c>true</c> [disposing].</param>
+        </member>
         <member name="T:FileCabinetApp.FileCabinetFilesystemService">
             <summary>
             Represents a service for working with the file cabinet.
@@ -15,6 +53,12 @@
             </summary>
             <param name="validatorBuilder">The validator builder to use.</param>
             <param name="fileStream">The file stream to use.</param>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemService.GetEnumerator">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemService.System#Collections#IEnumerable#GetEnumerator">
+            <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.RecordExists(System.Int32)">
             <inheritdoc/>
@@ -40,8 +84,49 @@
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.EditRecord(System.Int32,FileCabinetApp.PersonalInfo)">
             <inheritdoc/>
         </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemService.FindByFirstName(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemService.FindByLastName(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemService.FindByDateOfBirth(System.String)">
+            <inheritdoc/>
+        </member>
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.MakeSnapshot">
             <inheritdoc/>
+        </member>
+        <member name="T:FileCabinetApp.FileCabinetMemoryIterator">
+            <summary>
+            FileCabinetMemoryIterator class.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryIterator.#ctor(System.Collections.ObjectModel.ReadOnlyCollection{FileCabinetApp.FileCabinetRecord})">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.FileCabinetMemoryIterator"/> class.
+            </summary>
+            <param name="records">The records.</param>
+        </member>
+        <member name="P:FileCabinetApp.FileCabinetMemoryIterator.Current">
+            <inheritdoc/>
+        </member>
+        <member name="P:FileCabinetApp.FileCabinetMemoryIterator.System#Collections#IEnumerator#Current">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryIterator.MoveNext">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryIterator.Reset">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryIterator.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryIterator.Dispose(System.Boolean)">
+            <summary>
+            Releases unmanaged and - optionally - managed resources.
+            </summary>
+            <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         </member>
         <member name="T:FileCabinetApp.FileCabinetMemoryService">
             <summary>
@@ -78,7 +163,22 @@
         <member name="M:FileCabinetApp.FileCabinetMemoryService.EditRecord(System.Int32,FileCabinetApp.PersonalInfo)">
             <inheritdoc/>
         </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryService.FindByFirstName(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryService.FindByLastName(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryService.FindByDateOfBirth(System.String)">
+            <inheritdoc/>
+        </member>
         <member name="M:FileCabinetApp.FileCabinetMemoryService.MakeSnapshot">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryService.GetEnumerator">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryService.System#Collections#IEnumerable#GetEnumerator">
             <inheritdoc/>
         </member>
         <member name="T:FileCabinetApp.FileCabinetRecord">
@@ -133,6 +233,38 @@
             Gets or sets the printed representation of the record.
             </summary>
             <value>The printed representation of the record.</value>
+        </member>
+        <member name="T:FileCabinetApp.FileCabinetRecordEnumerator">
+            <summary>
+            FileCabinetRecordEnumerator class.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetRecordEnumerator.#ctor(FileCabinetApp.IFileCabinetService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.FileCabinetRecordEnumerator"/> class.
+            </summary>
+            <param name="service">The service.</param>
+        </member>
+        <member name="P:FileCabinetApp.FileCabinetRecordEnumerator.Current">
+            <inheritdoc/>
+        </member>
+        <member name="P:FileCabinetApp.FileCabinetRecordEnumerator.System#Collections#IEnumerator#Current">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetRecordEnumerator.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetRecordEnumerator.MoveNext">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetRecordEnumerator.Reset">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetRecordEnumerator.Dispose(System.Boolean)">
+            <summary>
+            Disposes the specified disposing.
+            </summary>
+            <param name="disposing">if set to <c>true</c> [disposing].</param>
         </member>
         <member name="T:FileCabinetApp.FileCabinetServiceSnapshot">
             <summary>
@@ -556,6 +688,12 @@
             <param name="service">Service to log.</param>
             <param name="logFilePath">Path to the log file.</param>
         </member>
+        <member name="M:FileCabinetApp.ServiceLogger.GetEnumerator">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.System#Collections#IEnumerable#GetEnumerator">
+            <inheritdoc/>
+        </member>
         <member name="M:FileCabinetApp.ServiceLogger.CreateRecord(FileCabinetApp.PersonalInfo)">
             <inheritdoc/>
         </member>
@@ -619,6 +757,12 @@
             <value>
             The service.
             </value>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.GetEnumerator">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.System#Collections#IEnumerable#GetEnumerator">
+            <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.ServiceMeter.CreateRecord(FileCabinetApp.PersonalInfo)">
             <inheritdoc/>

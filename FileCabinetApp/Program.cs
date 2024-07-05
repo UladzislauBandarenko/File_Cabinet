@@ -21,8 +21,6 @@ public static class Program
         new HelpMessage("exit", "exits the application", "The 'exit' command exits the application."),
         new HelpMessage("stat", "prints the number of records", "The 'stat' command prints the number of records."),
         new HelpMessage("create", "creates a new record", "The 'create' command creates a new record."),
-        new HelpMessage("list", "lists all records", "The 'list' command lists all records."),
-        new HelpMessage("find", "finds records by property", "The 'find' command finds records by property. Usage: find <property> <value>"),
         new HelpMessage("export", "exports records to a file", "The 'export' command exports all records to a file. Usage: export [csv|xml] <filename>"),
         new HelpMessage("import", "imports records from a file", "The 'import' command imports records from a file. Usage: import [csv|xml] <filename>"),
         new HelpMessage("purge", "purges all records", "The 'purge' command purges all records."),
@@ -242,8 +240,6 @@ public static class Program
         var exitHandler = new ExitCommandHandler(isRunning => Program.isRunning = isRunning);
         var statHandler = new StatCommandHandler(fileCabinetService);
         var createHandler = new CreateCommandHandler(fileCabinetService, HelpMessages);
-        var listHandler = new ListCommandHandler(fileCabinetService);
-        var findHandler = new FindCommandHandler(fileCabinetService, HelpMessages);
         var exportHandler = new ExportCommandHandler(fileCabinetService, HelpMessages);
         var importHandler = new ImportCommandHandler(fileCabinetService, HelpMessages);
         var purgeHandler = new PurgeCommandHandler(fileCabinetService);
@@ -255,9 +251,7 @@ public static class Program
         helpHandler.SetNext(exitHandler);
         exitHandler.SetNext(statHandler);
         statHandler.SetNext(createHandler);
-        createHandler.SetNext(listHandler);
-        listHandler.SetNext(findHandler);
-        findHandler.SetNext(exportHandler);
+        createHandler.SetNext(exportHandler);
         exportHandler.SetNext(importHandler);
         importHandler.SetNext(purgeHandler);
         purgeHandler.SetNext(insertCommandHandler);

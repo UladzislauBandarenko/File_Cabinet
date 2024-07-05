@@ -79,21 +79,6 @@
         <member name="M:FileCabinetApp.CommandHandlers.ExportCommandHandler.Handle(System.String)">
             <inheritdoc/>
         </member>
-        <member name="T:FileCabinetApp.CommandHandlers.FindCommandHandler">
-            <summary>
-            Find command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.FindCommandHandler.#ctor(FileCabinetApp.IFileCabinetService,System.Collections.Generic.IReadOnlyCollection{FileCabinetApp.Models.HelpMessage})">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.FindCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-            <param name="helpMessages">The help messages.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.FindCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
         <member name="T:FileCabinetApp.CommandHandlers.HelpCommandHandler">
             <summary>
             Help command handler.
@@ -153,20 +138,6 @@
             <param name="helpMessages">The help messages.</param>
         </member>
         <member name="M:FileCabinetApp.CommandHandlers.InsertCommandHandler.Handle(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="T:FileCabinetApp.CommandHandlers.ListCommandHandler">
-            <summary>
-            List command handler.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.ListCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.ListCommandHandler"/> class.
-            </summary>
-            <param name="fileCabinetService">The file cabinet service.</param>
-        </member>
-        <member name="M:FileCabinetApp.CommandHandlers.ListCommandHandler.Handle(System.String)">
             <inheritdoc/>
         </member>
         <member name="T:FileCabinetApp.CommandHandlers.PurgeCommandHandler">
@@ -493,6 +464,14 @@
         </member>
         <member name="M:FileCabinetApp.FileCabinetMemoryService.UpdateRecords(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
             <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryService.SelectRecords(System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Selects the records.
+            </summary>
+            <param name="fields">The fields.</param>
+            <param name="conditions">The conditions.</param>
+            <returns>The records.</returns>
         </member>
         <member name="M:FileCabinetApp.FileCabinetMemoryService.GetRecords(FileCabinetApp.RecordPrinter)">
             <inheritdoc/>

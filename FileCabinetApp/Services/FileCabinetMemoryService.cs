@@ -156,6 +156,61 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public ReadOnlyCollection<int> DeleteRecords(string field, string value)
+        {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            var deletedIds = new List<int>();
+            var recordsToRemove = new List<FileCabinetRecord>();
+
+            foreach (var record in this.records)
+            {
+                bool match = false;
+                switch (field.ToLowerInvariant())
+                {
+                    case "id":
+                        match = record.Id.ToString(CultureInfo.InvariantCulture) == value;
+                        break;
+                    case "firstname":
+                        match = record.FirstName?.Equals(value, StringComparison.OrdinalIgnoreCase) ?? false;
+                        break;
+                    case "lastname":
+                        match = record.LastName?.Equals(value, StringComparison.OrdinalIgnoreCase) ?? false;
+                        break;
+                    case "dateofbirth":
+                        match = record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) == value;
+                        break;
+                    case "age":
+                        match = record.Age.ToString(CultureInfo.InvariantCulture) == value;
+                        break;
+                    case "salary":
+                        match = record.Salary.ToString(CultureInfo.InvariantCulture) == value;
+                        break;
+                    case "gender":
+                        match = record.Gender.ToString().Equals(value, StringComparison.OrdinalIgnoreCase);
+                        break;
+                }
+
+                if (match)
+                {
+                    deletedIds.Add(record.Id);
+                    recordsToRemove.Add(record);
+                }
+            }
+
+            foreach (var record in recordsToRemove)
+            {
+                this.records.Remove(record);
+                this.RemoveFromIndices(record);
+            }
+
+            return new ReadOnlyCollection<int>(deletedIds);
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             return new ReadOnlyCollection<FileCabinetRecord>(this.records.Select(r => new FileCabinetRecord

@@ -272,6 +272,84 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public ReadOnlyCollection<int> DeleteRecords(string field, string value)
+        {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            var deletedIds = new List<int>();
+            long fileLength = this.fileStream.Length;
+            byte[] buffer = new byte[RecordSize];
+
+            for (long position = 0; position < fileLength; position += RecordSize)
+            {
+                this.fileStream.Seek(position, SeekOrigin.Begin);
+                this.fileStream.Read(buffer, 0, RecordSize);
+
+                using (var memoryStream = new MemoryStream(buffer))
+                using (var reader = new BinaryReader(memoryStream))
+                {
+                    short status = reader.ReadInt16();
+                    if (status != ActiveStatus)
+                    {
+                        continue;
+                    }
+
+                    int id = reader.ReadInt32();
+                    string firstName = Encoding.ASCII.GetString(reader.ReadBytes(60)).TrimEnd('\0', ' ');
+                    string lastName = Encoding.ASCII.GetString(reader.ReadBytes(60)).TrimEnd('\0', ' ');
+                    int year = reader.ReadInt32();
+                    int month = reader.ReadInt32();
+                    int day = reader.ReadInt32();
+                    short age = reader.ReadInt16();
+                    decimal salary = reader.ReadDecimal();
+                    char gender = (char)reader.ReadInt16();
+
+                    bool match = false;
+                    switch (field.ToLowerInvariant())
+                    {
+                        case "id":
+                            match = id.ToString(CultureInfo.InvariantCulture) == value;
+                            break;
+                        case "firstname":
+                            match = firstName.Equals(value, StringComparison.OrdinalIgnoreCase);
+                            break;
+                        case "lastname":
+                            match = lastName.Equals(value, StringComparison.OrdinalIgnoreCase);
+                            break;
+                        case "dateofbirth":
+                            match = new DateTime(year, month, day).ToString("yyyy-MM-dd") == value;
+                            break;
+                        case "age":
+                            match = age.ToString(CultureInfo.InvariantCulture) == value;
+                            break;
+                        case "salary":
+                            match = salary.ToString(CultureInfo.InvariantCulture) == value;
+                            break;
+                        case "gender":
+                            match = gender.ToString().Equals(value, StringComparison.OrdinalIgnoreCase);
+                            break;
+                    }
+
+                    if (match)
+                    {
+                        deletedIds.Add(id);
+                        this.fileStream.Seek(position, SeekOrigin.Begin);
+                        using (var writer = new BinaryWriter(this.fileStream, Encoding.ASCII, true))
+                        {
+                            writer.Write(InactiveStatus);
+                        }
+                    }
+                }
+            }
+
+            this.fileStream.Flush();
+            return new ReadOnlyCollection<int>(deletedIds);
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             if (printer is null)

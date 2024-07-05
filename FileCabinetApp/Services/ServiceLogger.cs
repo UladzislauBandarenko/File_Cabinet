@@ -39,6 +39,13 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public ReadOnlyCollection<int> DeleteRecords(string field, string value)
+        {
+            this.Log("DeleteRecords", $"Field: {field}, Value: {value}");
+            return this.service.DeleteRecords(field, value);
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             if (printer is null)

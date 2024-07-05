@@ -50,6 +50,16 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public ReadOnlyCollection<int> DeleteRecords(string field, string value)
+        {
+            this.stopwatch.Restart();
+            var result = this.service.DeleteRecords(field, value);
+            this.stopwatch.Stop();
+            Console.WriteLine($"DeleteRecords method execution time: {this.stopwatch.ElapsedTicks} ticks");
+            return result;
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             this.stopwatch.Restart();

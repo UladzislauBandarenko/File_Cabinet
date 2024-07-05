@@ -87,6 +87,20 @@
         <member name="M:FileCabinetApp.CommandHandlers.CreateCommandHandler.Handle(System.String)">
             <inheritdoc/>
         </member>
+        <member name="T:FileCabinetApp.CommandHandlers.DeleteCommandHandler">
+            <summary>
+            Delete command handler.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.DeleteCommandHandler.#ctor(FileCabinetApp.IFileCabinetService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.CommandHandlers.DeleteCommandHandler"/> class.
+            </summary>
+            <param name="fileCabinetService">The file cabinet service.</param>
+        </member>
+        <member name="M:FileCabinetApp.CommandHandlers.DeleteCommandHandler.Handle(System.String)">
+            <inheritdoc/>
+        </member>
         <member name="T:FileCabinetApp.CommandHandlers.EditCommandHandler">
             <summary>
             Edit command handler.
@@ -400,6 +414,9 @@
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.InsertRecord(System.Int32,FileCabinetApp.PersonalInfo)">
             <inheritdoc/>
         </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemService.DeleteRecords(System.String,System.String)">
+            <inheritdoc/>
+        </member>
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.GetRecords(FileCabinetApp.RecordPrinter)">
             <inheritdoc/>
         </member>
@@ -448,6 +465,9 @@
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.FileCabinetMemoryService.InsertRecord(System.Int32,FileCabinetApp.PersonalInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryService.DeleteRecords(System.String,System.String)">
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.FileCabinetMemoryService.GetRecords(FileCabinetApp.RecordPrinter)">
@@ -590,6 +610,14 @@
             <param name="personalInfo">The personal information for the new record.</param>
             <returns>The id of the newly inserted record.</returns>
         </member>
+        <member name="M:FileCabinetApp.IFileCabinetService.DeleteRecords(System.String,System.String)">
+            <summary>
+            Deletes records based on the specified field and value.
+            </summary>
+            <param name="field">The field to match.</param>
+            <param name="value">The value to match.</param>
+            <returns>A list of deleted record IDs.</returns>
+        </member>
         <member name="T:FileCabinetApp.ServiceLogger">
             <summary>
             Service logger class.
@@ -606,6 +634,9 @@
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.ServiceLogger.InsertRecord(System.Int32,FileCabinetApp.PersonalInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.DeleteRecords(System.String,System.String)">
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.ServiceLogger.GetRecords(FileCabinetApp.RecordPrinter)">
@@ -673,6 +704,9 @@
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.ServiceMeter.InsertRecord(System.Int32,FileCabinetApp.PersonalInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.DeleteRecords(System.String,System.String)">
             <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.ServiceMeter.GetRecords(FileCabinetApp.RecordPrinter)">

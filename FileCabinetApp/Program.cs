@@ -29,6 +29,7 @@ public static class Program
         new HelpMessage("remove", "removes a record", "The 'remove' command removes a record. Usage: remove <id>"),
         new HelpMessage("purge", "purges all records", "The 'purge' command purges all records."),
         new HelpMessage("insert", "inserts a new record", "The 'insert' command inserts a new record. Usage: insert (id, firstname, lastname, dateofbirth, height, weight, gender) values (<id>, <firstname>, <lastname>, <dateofbirth>, <height>, <weight>, <gender>)"),
+        new HelpMessage("delete", "deletes records", "The 'delete' command deletes records. Usage: delete where <field>=<value>"),
     };
 
     private static IFileCabinetService? fileCabinetService;
@@ -176,6 +177,7 @@ public static class Program
         var removeHandler = new RemoveCommandHandler(fileCabinetService);
         var purgeHandler = new PurgeCommandHandler(fileCabinetService);
         var insertCommandHandler = new InsertCommandHandler(fileCabinetService);
+        var deleteCommandHandler = new DeleteCommandHandler(fileCabinetService);
 
         helpHandler.SetNext(exitHandler);
         exitHandler.SetNext(statHandler);
@@ -188,6 +190,7 @@ public static class Program
         importHandler.SetNext(removeHandler);
         removeHandler.SetNext(purgeHandler);
         purgeHandler.SetNext(insertCommandHandler);
+        insertCommandHandler.SetNext(deleteCommandHandler);
 
         return helpHandler;
     }

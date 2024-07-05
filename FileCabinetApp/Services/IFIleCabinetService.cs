@@ -101,5 +101,13 @@ namespace FileCabinetApp
         /// <param name="personalInfo">The personal information for the new record.</param>
         /// <returns>The id of the newly inserted record.</returns>
         int InsertRecord(int id, PersonalInfo personalInfo);
+
+        /// <summary>
+/// Deletes records based on the specified field and value.
+        /// </summary>
+        /// <param name="field">The field to match.</param>
+        /// <param name="value">The value to match.</param>
+        /// <returns>A list of deleted record IDs.</returns>
+        ReadOnlyCollection<int> DeleteRecords(string field, string value);
     }
 }

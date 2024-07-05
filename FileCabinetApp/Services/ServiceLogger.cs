@@ -32,6 +32,13 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public int InsertRecord(int id, PersonalInfo personalInfo)
+        {
+            this.Log("InsertRecord", $"Id: {id}, PersonalInfo: {personalInfo}");
+            return this.service.InsertRecord(id, personalInfo);
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             if (printer is null)

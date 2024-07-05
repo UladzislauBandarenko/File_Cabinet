@@ -93,5 +93,13 @@ namespace FileCabinetApp
         /// <param name="id">The id of the record to check.</param>
         /// <returns>True if the record exists, false otherwise.</returns>
         bool RecordExists(int id);
+
+        /// <summary>
+        /// Inserts a new record with the specified id and personal information.
+        /// </summary>
+        /// <param name="id">The id of the new record.</param>
+        /// <param name="personalInfo">The personal information for the new record.</param>
+        /// <returns>The id of the newly inserted record.</returns>
+        int InsertRecord(int id, PersonalInfo personalInfo);
     }
 }

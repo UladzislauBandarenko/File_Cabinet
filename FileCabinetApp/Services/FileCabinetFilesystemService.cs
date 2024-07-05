@@ -222,6 +222,56 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public int InsertRecord(int id, PersonalInfo personalInfo)
+        {
+            if (personalInfo is null)
+            {
+                throw new ArgumentNullException(nameof(personalInfo));
+            }
+
+            this.ValidatePersonalInfo(personalInfo);
+
+            long fileLength = this.fileStream.Length;
+            byte[] buffer = new byte[6]; // Read status (2 bytes) and id (4 bytes)
+
+            for (long position = 0; position < fileLength; position += RecordSize)
+            {
+                this.fileStream.Seek(position, SeekOrigin.Begin);
+                this.fileStream.Read(buffer, 0, 6);
+
+                short status = BitConverter.ToInt16(buffer, 0);
+                int recordId = BitConverter.ToInt32(buffer, 2);
+
+                if (status == ActiveStatus && recordId == id)
+                {
+                    throw new ArgumentException($"Record with id {id} already exists.", nameof(id));
+                }
+            }
+
+            byte[] record = new byte[RecordSize];
+            using (MemoryStream memoryStream = new MemoryStream(record))
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(ActiveStatus); // Status (2 bytes)
+                writer.Write(id); // Id (4 bytes)
+                writer.Write(Encoding.ASCII.GetBytes(personalInfo.FirstName.PadRight(60))); // FirstName (120 bytes)
+                writer.Write(Encoding.ASCII.GetBytes(personalInfo.LastName.PadRight(60))); // LastName (120 bytes)
+                writer.Write(personalInfo.DateOfBirth.Year); // Year (4 bytes)
+                writer.Write(personalInfo.DateOfBirth.Month); // Month (4 bytes)
+                writer.Write(personalInfo.DateOfBirth.Day); // Day (4 bytes)
+                writer.Write(personalInfo.Age); // Age (2 bytes)
+                writer.Write(personalInfo.Salary); // Salary (8 bytes)
+                writer.Write(personalInfo.Gender); // Gender (2 bytes)
+            }
+
+            this.fileStream.Seek(0, SeekOrigin.End);
+            this.fileStream.Write(record, 0, RecordSize);
+            this.fileStream.Flush();
+
+            return id;
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             if (printer is null)

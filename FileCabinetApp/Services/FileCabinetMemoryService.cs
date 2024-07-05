@@ -122,6 +122,40 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public int InsertRecord(int id, PersonalInfo personalInfo)
+        {
+            if (personalInfo is null)
+            {
+                throw new ArgumentNullException(nameof(personalInfo));
+            }
+
+            this.ValidatePersonalInfo(personalInfo);
+
+            if (this.records.Any(r => r.Id == id))
+            {
+                throw new ArgumentException($"Record with id {id} already exists.", nameof(id));
+            }
+
+            var record = new FileCabinetRecord
+            {
+                Id = id,
+                FirstName = personalInfo.FirstName,
+                LastName = personalInfo.LastName,
+                DateOfBirth = personalInfo.DateOfBirth,
+                Age = personalInfo.Age,
+                Salary = personalInfo.Salary,
+                Gender = personalInfo.Gender,
+            };
+
+            this.records.Add(record);
+            AddToIndex(this.firstNameIndex, personalInfo.FirstName, record);
+            AddToIndex(this.lastNameIndex, personalInfo.LastName, record);
+            AddToIndex(this.dateOfBirthIndex, personalInfo.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), record);
+
+            return record.Id;
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             return new ReadOnlyCollection<FileCabinetRecord>(this.records.Select(r => new FileCabinetRecord

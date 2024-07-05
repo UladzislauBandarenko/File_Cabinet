@@ -40,6 +40,16 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public int InsertRecord(int id, PersonalInfo personalInfo)
+        {
+            this.stopwatch.Restart();
+            var result = this.service.InsertRecord(id, personalInfo);
+            this.stopwatch.Stop();
+            Console.WriteLine($"InsertRecord method execution time: {this.stopwatch.ElapsedTicks} ticks");
+            return result;
+        }
+
+        /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords(RecordPrinter printer)
         {
             this.stopwatch.Restart();

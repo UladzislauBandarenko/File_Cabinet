@@ -1,4 +1,4 @@
-using FileCabinetApp.Utilities;
+using System.Globalization;
 
 namespace FileCabinetApp.CommandHandlers
 {
@@ -28,15 +28,26 @@ namespace FileCabinetApp.CommandHandlers
 
             if (command.Equals("create", StringComparison.OrdinalIgnoreCase))
             {
-                var firstName = InputReader.ReadInput<string>("First name", RecordValidator.ValidateFirstName, s => s);
-                var lastName = InputReader.ReadInput<string>("Last name", RecordValidator.ValidateLastName, s => s);
-                var dateOfBirth = InputReader.ReadInput<DateTime>("Date of birth (mm/dd/yyyy)", RecordValidator.ValidateDateOfBirth, DateTime.Parse);
-                var age = InputReader.ReadInput<short>("Age", RecordValidator.ValidateAge, short.Parse);
-                var salary = InputReader.ReadInput<decimal>("Salary", RecordValidator.ValidateSalary, decimal.Parse);
-                var gender = InputReader.ReadInput<char>("Gender (M/F)", RecordValidator.ValidateGender, s => s[0]);
-
                 try
                 {
+                    Console.Write("First name: ");
+                    var firstName = Console.ReadLine() ?? string.Empty;
+
+                    Console.Write("Last name: ");
+                    var lastName = Console.ReadLine() ?? string.Empty;
+
+                    Console.Write("Date of birth (yyyy-mm-dd): ");
+                    var dateOfBirth = DateTime.Parse(Console.ReadLine() ?? string.Empty, CultureInfo.InvariantCulture);
+
+                    Console.Write("Age: ");
+                    var age = short.Parse(Console.ReadLine() ?? string.Empty, CultureInfo.InvariantCulture);
+
+                    Console.Write("Salary: ");
+                    var salary = decimal.Parse(Console.ReadLine() ?? string.Empty, CultureInfo.InvariantCulture);
+
+                    Console.Write("Gender (M/F): ");
+                    var gender = char.Parse(Console.ReadLine() ?? string.Empty);
+
                     var personalInfo = new PersonalInfo(firstName, lastName, dateOfBirth, age, salary, gender);
                     var recordId = this.fileCabinetService.CreateRecord(personalInfo);
                     Console.WriteLine($"Record #{recordId} is created.");
@@ -44,6 +55,10 @@ namespace FileCabinetApp.CommandHandlers
                 catch (ArgumentException ex)
                 {
                     Console.WriteLine($"Failed to create record: {ex.Message}");
+                }
+                catch (FormatException)
+                {
+                    Console.WriteLine("Invalid input format. Please try again.");
                 }
             }
             else if (this.nextHandler != null)

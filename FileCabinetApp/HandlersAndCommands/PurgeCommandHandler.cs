@@ -26,10 +26,16 @@ namespace FileCabinetApp.CommandHandlers
 
             if (command.Equals("purge", StringComparison.OrdinalIgnoreCase))
             {
-                if (this.fileCabinetService is FileCabinetFilesystemService filesystemService)
+                var service = this.fileCabinetService;
+                while (service is ServiceMeter serviceMeter)
                 {
-                    int totalRecords = filesystemService.GetStat();
-                    int purgedRecords = filesystemService.PurgeRecords();
+                    service = serviceMeter.Service;
+                }
+
+                if (service is FileCabinetFilesystemService)
+                {
+                    int totalRecords = this.fileCabinetService.GetStat();
+                    int purgedRecords = this.fileCabinetService.PurgeRecords();
                     Console.WriteLine($"Data file processing is completed: {purgedRecords} of {totalRecords} records were purged.");
                 }
                 else

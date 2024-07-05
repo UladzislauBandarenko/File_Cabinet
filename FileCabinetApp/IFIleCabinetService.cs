@@ -86,5 +86,12 @@ namespace FileCabinetApp
         /// </summary>
         /// <returns>The number of purged records.</returns>
         int PurgeRecords();
+
+        /// <summary>
+        /// Checks if a record with the given id exists.
+        /// </summary>
+        /// <param name="id">The id of the record to check.</param>
+        /// <returns>True if the record exists, false otherwise.</returns>
+        bool RecordExists(int id);
     }
 }

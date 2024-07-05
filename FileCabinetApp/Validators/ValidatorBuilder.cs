@@ -79,6 +79,27 @@ public class ValidatorBuilder
     }
 
     /// <summary>
+    /// Adds the validators based on the configuration.
+    /// </summary>
+    /// <param name="config">The validation configuration.</param>
+    /// <returns>The builder.</returns>
+    public ValidatorBuilder AddValidators(ValidationConfig config)
+    {
+        if (config is null)
+        {
+            throw new ArgumentNullException(nameof(config));
+        }
+
+        this.AddFirstNameValidator(new FirstNameValidator(config.FirstName.Min, config.FirstName.Max));
+        this.AddLastNameValidator(new LastNameValidator(config.LastName.Min, config.LastName.Max));
+        this.AddDateOfBirthValidator(new DateOfBirthValidator(config.DateOfBirth.From, config.DateOfBirth.To));
+        this.AddAgeValidator(new AgeValidator((short)config.Age.Min, (short)config.Age.Max));
+        this.AddSalaryValidator(new SalaryValidator(config.Salary.Min, config.Salary.Max));
+        this.AddGenderValidator(new GenderValidator(config.Gender.Select(g => g[0]).ToArray()));
+        return this;
+    }
+
+    /// <summary>
     /// Builds this instance.
     /// </summary>
     /// <returns>The record validator.</returns>

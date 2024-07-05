@@ -3,6 +3,7 @@ using System.Globalization;
 using FileCabinetApp.CommandHandlers;
 using FileCabinetApp.HandlersAndCommands;
 using FileCabinetApp.Validators;
+using Microsoft.Extensions.Configuration;
 
 namespace FileCabinetApp;
 
@@ -46,6 +47,8 @@ public static class Program
 
         string validationRules = "default";
         string storage = "memory";
+        bool useStopwatch = false;
+        bool useLogger = false;
 
         int i = 0;
         while (i < args.Length)
@@ -77,19 +80,30 @@ public static class Program
                 i += 2;
                 continue;
             }
+            else if (args[i] == "--use-stopwatch")
+            {
+                useStopwatch = true;
+                i++;
+                continue;
+            }
+            else if (args[i] == "--use-logger")
+            {
+                useLogger = true;
+                i++;
+                continue;
+            }
 
             i++;
         }
 
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("validation-rules.json", optional: false, reloadOnChange: true)
+            .Build();
+
+        var validationConfig = configuration.GetSection(validationRules).Get<ValidationConfig>() ?? new ValidationConfig();
         ValidatorBuilder validatorBuilder = new ValidatorBuilder();
-        if (validationRules == "default")
-        {
-            validatorBuilder.AddDefaultValidators();
-        }
-        else
-        {
-            validatorBuilder.AddCustomValidators();
-        }
+        validatorBuilder.AddValidators(validationConfig);
 
         if (storage == "file")
         {
@@ -102,13 +116,34 @@ public static class Program
             fileCabinetService = new FileCabinetMemoryService(validatorBuilder);
         }
 
+        if (useStopwatch)
+        {
+            fileCabinetService = new ServiceMeter(fileCabinetService);
+        }
+
+        if (useLogger)
+        {
+            string logFilePath = "filecabinet-log.txt";
+            fileCabinetService = new ServiceLogger(fileCabinetService, logFilePath);
+        }
+
         Console.WriteLine($"File Cabinet Application, developed by {Program.DeveloperName}");
         Console.WriteLine($"Using {storage} storage.");
         Console.WriteLine($"Using {validationRules} validation rules.");
+        if (useStopwatch)
+        {
+            Console.WriteLine("Execution time measurement is enabled.");
+        }
+
+        if (useLogger)
+        {
+            Console.WriteLine("Service logging is enabled.");
+        }
+
         Console.WriteLine(Program.HintMessage);
         Console.WriteLine();
 
-        var commandHandler = CreateCommandHandlers();
+        var commandHandler = CreateCommandHandlers(fileCabinetService);
 
         do
         {
@@ -126,13 +161,8 @@ public static class Program
         while (isRunning);
     }
 
-    private static ICommandHandler CreateCommandHandlers()
+    private static ICommandHandler CreateCommandHandlers(IFileCabinetService fileCabinetService)
     {
-        if (fileCabinetService == null)
-        {
-            throw new InvalidOperationException("FileCabinetService is not initialized.");
-        }
-
         var helpHandler = new HelpCommandHandler(HelpMessages);
         var exitHandler = new ExitCommandHandler(isRunning => Program.isRunning = isRunning);
         var statHandler = new StatCommandHandler(fileCabinetService);

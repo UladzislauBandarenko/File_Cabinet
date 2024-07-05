@@ -33,6 +33,33 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
+        public bool RecordExists(int id)
+        {
+            long fileLength = this.fileStream.Length;
+            byte[] buffer = new byte[RecordSize];
+
+            for (long position = 0; position < fileLength; position += RecordSize)
+            {
+                this.fileStream.Seek(position, SeekOrigin.Begin);
+                this.fileStream.Read(buffer, 0, RecordSize);
+
+                using (var memoryStream = new MemoryStream(buffer))
+                using (var reader = new BinaryReader(memoryStream))
+                {
+                    short status = reader.ReadInt16();
+                    int recordId = reader.ReadInt32();
+
+                    if (status == ActiveStatus && recordId == id)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <inheritdoc/>
         public int PurgeRecords()
         {
             int purgedRecords = 0;
@@ -253,68 +280,83 @@ namespace FileCabinetApp
 
             this.ValidatePersonalInfo(personalInfo);
 
-            long position = (id - 1) * RecordSize;
-            if (position >= this.fileStream.Length)
-            {
-                throw new ArgumentException($"Record with id {id} does not exist.", nameof(id));
-            }
-
-            this.fileStream.Seek(position, SeekOrigin.Begin);
-
+            long fileLength = this.fileStream.Length;
             byte[] buffer = new byte[RecordSize];
-            this.fileStream.Read(buffer, 0, RecordSize);
 
-            using (MemoryStream memoryStream = new MemoryStream(buffer))
-            using (BinaryReader reader = new BinaryReader(memoryStream))
+            for (long position = 0; position < fileLength; position += RecordSize)
             {
-                short status = reader.ReadInt16();
-                if (status != ActiveStatus)
+                this.fileStream.Seek(position, SeekOrigin.Begin);
+                this.fileStream.Read(buffer, 0, RecordSize);
+
+                using (var memoryStream = new MemoryStream(buffer))
+                using (var reader = new BinaryReader(memoryStream))
                 {
-                    throw new ArgumentException($"Record with id {id} does not exist or has been deleted.", nameof(id));
+                    short status = reader.ReadInt16();
+                    int recordId = reader.ReadInt32();
+
+                    if (status == ActiveStatus && recordId == id)
+                    {
+                        this.fileStream.Seek(position, SeekOrigin.Begin);
+                        using (var writer = new BinaryWriter(this.fileStream, Encoding.ASCII, true))
+                        {
+                            writer.Write(ActiveStatus);
+                            writer.Write(id);
+                            writer.Write(Encoding.ASCII.GetBytes(personalInfo.FirstName.PadRight(60)));
+                            writer.Write(Encoding.ASCII.GetBytes(personalInfo.LastName.PadRight(60)));
+                            writer.Write(personalInfo.DateOfBirth.Year);
+                            writer.Write(personalInfo.DateOfBirth.Month);
+                            writer.Write(personalInfo.DateOfBirth.Day);
+                            writer.Write(personalInfo.Age);
+                            writer.Write(personalInfo.Salary);
+                            writer.Write((short)personalInfo.Gender);
+                        }
+
+                        this.fileStream.Flush();
+                        return;
+                    }
                 }
             }
-
-            this.fileStream.Seek(position, SeekOrigin.Begin);
-
-            using (MemoryStream memoryStream = new MemoryStream(buffer))
-            using (BinaryWriter writer = new BinaryWriter(memoryStream))
-            {
-                writer.Write((short)1); // Status (2 bytes)
-                writer.Write(id); // Id (4 bytes)
-                writer.Write(Encoding.ASCII.GetBytes(personalInfo.FirstName.PadRight(60))); // FirstName (120 bytes)
-                writer.Write(Encoding.ASCII.GetBytes(personalInfo.LastName.PadRight(60))); // LastName (120 bytes)
-                writer.Write(personalInfo.DateOfBirth.Year); // Year (4 bytes)
-                writer.Write(personalInfo.DateOfBirth.Month); // Month (4 bytes)
-                writer.Write(personalInfo.DateOfBirth.Day); // Day (4 bytes)
-                writer.Write(personalInfo.Age); // Age (2 bytes)
-                writer.Write(personalInfo.Salary); // Salary (8 bytes)
-                writer.Write(personalInfo.Gender); // Gender (2 bytes)
-            }
-
-            this.fileStream.Write(buffer, 0, RecordSize);
-            this.fileStream.Flush();
         }
 
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
         {
-            return this.FindByPredicate(record => record.FirstName?.Equals(firstName, StringComparison.OrdinalIgnoreCase) ?? false);
+            var result = this.FindByPredicate(record =>
+            {
+                return !string.IsNullOrEmpty(record.FirstName) &&
+                    record.FirstName.Trim().Equals(firstName.Trim(), StringComparison.OrdinalIgnoreCase);
+            });
+            Console.WriteLine($"Found {result.Count} records");
+            return result;
         }
 
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName)
         {
-            return this.FindByPredicate(record => record.LastName?.Equals(lastName, StringComparison.OrdinalIgnoreCase) ?? false);
+            var result = this.FindByPredicate(record =>
+            {
+                return !string.IsNullOrEmpty(record.LastName) &&
+                       record.LastName.Trim().Equals(lastName.Trim(), StringComparison.OrdinalIgnoreCase);
+            });
+            Console.WriteLine($"Found {result.Count} records");
+            return result;
         }
 
         /// <inheritdoc/>
         public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
+            Console.WriteLine($"Searching for dateOfBirth: '{dateOfBirth}'");
             if (DateTime.TryParse(dateOfBirth, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
             {
-                return this.FindByPredicate(record => record.DateOfBirth.Date == date.Date);
+                var result = this.FindByPredicate(record =>
+                {
+                    return record.DateOfBirth.Date == date.Date;
+                });
+                Console.WriteLine($"Found {result.Count} records");
+                return result;
             }
 
+            Console.WriteLine("Invalid date format");
             return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
         }
 
@@ -326,7 +368,7 @@ namespace FileCabinetApp
 
         private static string DefaultRecordPrinter(FileCabinetRecord record)
         {
-            return $"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
+            return $"#{record.Id}, {record.FirstName?.TrimEnd()}, {record.LastName?.TrimEnd()}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}";
         }
 
         private void ValidatePersonalInfo(PersonalInfo personalInfo)
@@ -364,35 +406,50 @@ namespace FileCabinetApp
 
         private ReadOnlyCollection<FileCabinetRecord> FindByPredicate(Func<FileCabinetRecord, bool> predicate)
         {
-            List<FileCabinetRecord> result = new List<FileCabinetRecord>();
+            var result = new List<FileCabinetRecord>();
+            byte[] buffer = new byte[RecordSize];
 
             this.fileStream.Seek(0, SeekOrigin.Begin);
 
-            byte[] buffer = new byte[RecordSize];
             while (this.fileStream.Read(buffer, 0, RecordSize) == RecordSize)
             {
-                using (MemoryStream memoryStream = new MemoryStream(buffer))
-                using (BinaryReader reader = new BinaryReader(memoryStream))
-                {
-                    short status = reader.ReadInt16();
-                    if (status == ActiveStatus)
-                    {
-                        FileCabinetRecord record = new FileCabinetRecord
-                        {
-                            Id = reader.ReadInt32(),
-                            FirstName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
-                            LastName = Encoding.ASCII.GetString(reader.ReadBytes(120)).TrimEnd('\0'),
-                            DateOfBirth = new DateTime(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), 0, 0, 0, 0, DateTimeKind.Local),
-                            Age = reader.ReadInt16(),
-                            Salary = reader.ReadDecimal(),
-                            Gender = reader.ReadChar(),
-                        };
+                using var memoryStream = new MemoryStream(buffer);
+                using var reader = new BinaryReader(memoryStream);
 
-                        if (predicate(record))
-                        {
-                            result.Add(record);
-                        }
-                    }
+                short status = reader.ReadInt16();
+                if (status != ActiveStatus)
+                {
+                    continue;
+                }
+
+                var record = new FileCabinetRecord
+                {
+                    Id = reader.ReadInt32(),
+                    FirstName = Encoding.ASCII.GetString(reader.ReadBytes(60)).TrimEnd('\0', ' '),
+                    LastName = Encoding.ASCII.GetString(reader.ReadBytes(60)).TrimEnd('\0', ' '),
+                };
+
+                int year = reader.ReadInt32();
+                int month = reader.ReadInt32();
+                int day = reader.ReadInt32();
+
+                try
+                {
+                    record.DateOfBirth = new DateTime(year, month, day, 0, 0, 0, 0, DateTimeKind.Local);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    // Skip this record if the date is invalid
+                    continue;
+                }
+
+                record.Age = reader.ReadInt16();
+                record.Salary = reader.ReadDecimal();
+                record.Gender = (char)reader.ReadInt16();
+
+                if (predicate(record))
+                {
+                    result.Add(record);
                 }
             }
 

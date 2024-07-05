@@ -16,6 +16,9 @@
             <param name="validatorBuilder">The validator builder to use.</param>
             <param name="fileStream">The file stream to use.</param>
         </member>
+        <member name="M:FileCabinetApp.FileCabinetFilesystemService.RecordExists(System.Int32)">
+            <inheritdoc/>
+        </member>
         <member name="M:FileCabinetApp.FileCabinetFilesystemService.PurgeRecords">
             <inheritdoc/>
         </member>
@@ -59,6 +62,9 @@
             Initializes a new instance of the <see cref="T:FileCabinetApp.FileCabinetMemoryService"/> class.
             </summary>
             <param name="validatorBuilder">The validator to use for validating personal information.</param>
+        </member>
+        <member name="M:FileCabinetApp.FileCabinetMemoryService.RecordExists(System.Int32)">
+            <inheritdoc/>
         </member>
         <member name="M:FileCabinetApp.FileCabinetMemoryService.PurgeRecords">
             <inheritdoc/>
@@ -474,6 +480,13 @@
             </summary>
             <returns>The number of purged records.</returns>
         </member>
+        <member name="M:FileCabinetApp.IFileCabinetService.RecordExists(System.Int32)">
+            <summary>
+            Checks if a record with the given id exists.
+            </summary>
+            <param name="id">The id of the record to check.</param>
+            <returns>True if the record exists, false otherwise.</returns>
+        </member>
         <member name="T:FileCabinetApp.PersonalInfo">
             <summary>
             Represents personal information about a person.
@@ -549,6 +562,118 @@
             </summary>
             <param name="args">The command-line arguments.</param>
         </member>
+        <member name="T:FileCabinetApp.ServiceLogger">
+            <summary>
+            Service logger class.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.#ctor(FileCabinetApp.IFileCabinetService,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.ServiceLogger"/> class.
+            </summary>
+            <param name="service">Service to log.</param>
+            <param name="logFilePath">Path to the log file.</param>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.CreateRecord(FileCabinetApp.PersonalInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.GetRecords(FileCabinetApp.RecordPrinter)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.GetStat">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.EditRecord(System.Int32,FileCabinetApp.PersonalInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.FindByFirstName(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.FindByLastName(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.FindByDateOfBirth(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.MakeSnapshot">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.Restore(FileCabinetApp.FileCabinetServiceSnapshot)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.RemoveRecord(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.PurgeRecords">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.RecordExists(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceLogger.Dispose(System.Boolean)">
+            <summary>
+            Disposes the service logger.
+            </summary>
+            <param name="disposing">Whether to dispose of managed resources.</param>
+        </member>
+        <member name="T:FileCabinetApp.ServiceMeter">
+            <summary>
+            ServiceMeter class.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.#ctor(FileCabinetApp.IFileCabinetService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.ServiceMeter"/> class.
+            </summary>
+            <param name="service">The service.</param>
+        </member>
+        <member name="P:FileCabinetApp.ServiceMeter.Service">
+            <summary>
+            Gets the service.
+            </summary>
+            <value>
+            The service.
+            </value>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.CreateRecord(FileCabinetApp.PersonalInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.GetRecords(FileCabinetApp.RecordPrinter)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.GetStat">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.EditRecord(System.Int32,FileCabinetApp.PersonalInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.FindByFirstName(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.FindByLastName(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.FindByDateOfBirth(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.MakeSnapshot">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.Restore(FileCabinetApp.FileCabinetServiceSnapshot)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.RemoveRecord(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.PurgeRecords">
+            <inheritdoc/>
+        </member>
+        <member name="M:FileCabinetApp.ServiceMeter.RecordExists(System.Int32)">
+            <inheritdoc/>
+        </member>
         <member name="T:FileCabinetApp.FileCabinetRecordCsvReader">
             <summary>
             Represents a reader for CSV files.
@@ -616,68 +741,6 @@
             Writes the specified records.
             </summary>
             <param name="records">The records.</param>
-        </member>
-        <member name="T:FileCabinetApp.Utilities.InputReader">
-            <summary>
-            Input reader.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.Utilities.InputReader.ReadInput``1(System.String,System.Func{System.String,System.Tuple{System.Boolean,System.String}},System.Func{System.String,``0})">
-            <summary>
-            Reads the input.
-            </summary>
-            <typeparam name="T">The type of the value to read.</typeparam>
-            <param name="prompt">The prompt.</param>
-            <param name="validator">The validator.</param>
-            <param name="converter">The converter.</param>
-            <returns>The input.</returns>
-        </member>
-        <member name="T:FileCabinetApp.Utilities.RecordValidator">
-            <summary>
-            Record validator.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.Utilities.RecordValidator.ValidateFirstName(System.String)">
-            <summary>
-            Validates the first name.
-            </summary>
-            <param name="input">The input.</param>
-            <returns>The result of the validation.</returns>
-        </member>
-        <member name="M:FileCabinetApp.Utilities.RecordValidator.ValidateLastName(System.String)">
-            <summary>
-            Validates the last name.
-            </summary>
-            <param name="input">The input.</param>
-            <returns>The result of the validation.</returns>
-        </member>
-        <member name="M:FileCabinetApp.Utilities.RecordValidator.ValidateDateOfBirth(System.String)">
-            <summary>
-            Validates the date of birth.
-            </summary>
-            <param name="input">The input.</param>
-            <returns>The result of the validation.</returns>
-        </member>
-        <member name="M:FileCabinetApp.Utilities.RecordValidator.ValidateAge(System.String)">
-            <summary>
-            Validates the age.
-            </summary>
-            <param name="input">The input.</param>
-            <returns>The result of the validation.</returns>
-        </member>
-        <member name="M:FileCabinetApp.Utilities.RecordValidator.ValidateSalary(System.String)">
-            <summary>
-            Validates the salary.
-            </summary>
-            <param name="input">The input.</param>
-            <returns>The result of the validation.</returns>
-        </member>
-        <member name="M:FileCabinetApp.Utilities.RecordValidator.ValidateGender(System.String)">
-            <summary>
-            Validates the gender.
-            </summary>
-            <param name="input">The input.</param>
-            <returns>The result of the validation.</returns>
         </member>
         <member name="T:FileCabinetApp.Validators.CompositeValidator`1">
             <summary>
@@ -884,6 +947,101 @@
         <member name="M:FileCabinetApp.Validators.RecordValidator.ValidateGender(System.Char,System.String@)">
             <inheritdoc/>
         </member>
+        <member name="T:FileCabinetApp.Validators.ValidationConfig">
+            <summary>
+            Validation configuration.
+            </summary>
+        </member>
+        <member name="P:FileCabinetApp.Validators.ValidationConfig.FirstName">
+            <summary>
+            Gets or sets the first name.
+            </summary>
+            <value>
+            The first name.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.Validators.ValidationConfig.LastName">
+            <summary>
+            Gets or sets the last name.
+            </summary>
+            <value>
+            The last name.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.Validators.ValidationConfig.DateOfBirth">
+            <summary>
+            Gets or sets the date of birth.
+            </summary>
+            <value>
+            The date of birth.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.Validators.ValidationConfig.Age">
+            <summary>
+            Gets or sets the age.
+            </summary>
+            <value>
+            The age.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.Validators.ValidationConfig.Salary">
+            <summary>
+            Gets or sets the salary.
+            </summary>
+            <value>
+            The salary.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.Validators.ValidationConfig.Gender">
+            <summary>
+            Gets or sets the gender.
+            </summary>
+            <value>
+            The gender.
+            </value>
+        </member>
+        <member name="T:FileCabinetApp.Validators.FieldConfig">
+            <summary>
+            Field configuration.
+            </summary>
+        </member>
+        <member name="P:FileCabinetApp.Validators.FieldConfig.Min">
+            <summary>
+            Gets or sets the minimum.
+            </summary>
+            <value>
+            The minimum.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.Validators.FieldConfig.Max">
+            <summary>
+            Gets or sets the maximum.
+            </summary>
+            <value>
+            The maximum.
+            </value>
+        </member>
+        <member name="T:FileCabinetApp.Validators.DateConfig">
+            <summary>
+            Date configuration.
+            </summary>
+        </member>
+        <member name="P:FileCabinetApp.Validators.DateConfig.From">
+            <summary>
+            Gets or sets from.
+            </summary>
+            <value>
+            From.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.Validators.DateConfig.To">
+            <summary>
+            Gets or sets to.
+            </summary>
+            <value>
+            To.
+            </value>
+        </member>
         <member name="T:FileCabinetApp.Validators.ValidatorBuilder">
             <summary>
             Validator builder.
@@ -929,6 +1087,13 @@
             Adds the gender validator.
             </summary>
             <param name="validator">The validator.</param>
+            <returns>The builder.</returns>
+        </member>
+        <member name="M:FileCabinetApp.Validators.ValidatorBuilder.AddValidators(FileCabinetApp.Validators.ValidationConfig)">
+            <summary>
+            Adds the validators based on the configuration.
+            </summary>
+            <param name="config">The validation configuration.</param>
             <returns>The builder.</returns>
         </member>
         <member name="M:FileCabinetApp.Validators.ValidatorBuilder.Build">

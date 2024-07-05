@@ -215,7 +215,7 @@ namespace FileCabinetApp
                 writer.Write(personalInfo.DateOfBirth.Day); // Day (4 bytes)
                 writer.Write(personalInfo.Age); // Age (2 bytes)
                 writer.Write(personalInfo.Salary); // Salary (8 bytes)
-                writer.Write(personalInfo.Gender); // Gender (2 bytes)
+                writer.Write((short)personalInfo.Gender); // Gender (2 bytes)
             }
 
             long recordPosition = this.fileStream.Position;
@@ -338,42 +338,40 @@ namespace FileCabinetApp
             }
         }
 
-        /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
+        public IFileCabinetRecordIterator FindByFirstName(string firstName)
         {
+            Console.WriteLine($"Searching for firstName: '{firstName}'");
             if (this.firstNameIndex.TryGetValue(firstName, out var positions))
             {
-                return new ReadOnlyCollection<FileCabinetRecord>(
-                    positions.Select(position => this.ReadRecordAtPosition(position)).ToList());
+                Console.WriteLine($"Found {positions.Count} positions in index");
+                return new FileCabinetFilesystemIterator(this.fileStream, positions);
             }
-            return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
+            Console.WriteLine("No positions found in index");
+            return new FileCabinetFilesystemIterator(this.fileStream, new List<long>());
         }
 
-        /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName)
+        public IFileCabinetRecordIterator FindByLastName(string lastName)
         {
+            Console.WriteLine($"Searching for lastName: '{lastName}'");
             if (this.lastNameIndex.TryGetValue(lastName, out var positions))
             {
-                return new ReadOnlyCollection<FileCabinetRecord>(
-                    positions.Select(position => this.ReadRecordAtPosition(position)).ToList());
+                Console.WriteLine($"Found {positions.Count} positions in index");
+                return new FileCabinetFilesystemIterator(this.fileStream, positions);
             }
-            return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
+            Console.WriteLine("No positions found in index");
+            return new FileCabinetFilesystemIterator(this.fileStream, new List<long>());
         }
 
-        /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
+        public IFileCabinetRecordIterator FindByDateOfBirth(string dateOfBirth)
         {
             Console.WriteLine($"Searching for dateOfBirth: '{dateOfBirth}'");
             if (this.dateOfBirthIndex.TryGetValue(dateOfBirth, out var positions))
             {
-                var result = new ReadOnlyCollection<FileCabinetRecord>(
-                    positions.Select(position => this.ReadRecordAtPosition(position)).ToList());
-                Console.WriteLine($"Found {result.Count} records");
-                return result;
+                Console.WriteLine($"Found {positions.Count} positions in index");
+                return new FileCabinetFilesystemIterator(this.fileStream, positions);
             }
-
-            Console.WriteLine("Invalid date format");
-            return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
+            Console.WriteLine("No positions found in index");
+            return new FileCabinetFilesystemIterator(this.fileStream, new List<long>());
         }
 
         /// <inheritdoc/>
@@ -422,12 +420,14 @@ namespace FileCabinetApp
 
         private void AddToIndex(Dictionary<string, List<long>> index, string key, long position)
         {
-            if (!index.TryGetValue(key, out var positions))
+            string trimmedKey = key.Trim();
+            if (!index.TryGetValue(trimmedKey, out var positions))
             {
                 positions = new List<long>();
-                index[key] = positions;
+                index[trimmedKey] = positions;
             }
             positions.Add(position);
+            Console.WriteLine($"Added position {position} to index for key '{trimmedKey}'");
         }
 
         private void RemoveFromIndex(Dictionary<string, List<long>> index, string key, long position)
@@ -471,18 +471,20 @@ namespace FileCabinetApp
 
         private void InitializeIndices()
         {
+            Console.WriteLine("Initializing indices...");
             long position = 0;
             while (position < this.fileStream.Length)
             {
                 var record = this.ReadRecordAtPosition(position);
                 if (record != null)
                 {
-                    this.AddToIndex(this.firstNameIndex, record.FirstName, position);
-                    this.AddToIndex(this.lastNameIndex, record.LastName, position);
+                    this.AddToIndex(this.firstNameIndex, record.FirstName.Trim(), position);
+                    this.AddToIndex(this.lastNameIndex, record.LastName.Trim(), position);
                     this.AddToIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd"), position);
                 }
                 position += RecordSize;
             }
+            Console.WriteLine("Indices initialized");
         }
     }
 }

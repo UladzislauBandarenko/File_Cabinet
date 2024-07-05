@@ -171,27 +171,23 @@ namespace FileCabinetApp
             this.AddToIndices(record);
         }
 
-        /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
+        public IFileCabinetRecordIterator FindByFirstName(string firstName)
         {
-            return new ReadOnlyCollection<FileCabinetRecord>(FindByIndex(this.firstNameIndex, firstName));
+            return new FileCabinetMemoryIterator(FindByIndex(this.firstNameIndex, firstName));
         }
 
-        /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName)
+        public IFileCabinetRecordIterator FindByLastName(string lastName)
         {
-            return new ReadOnlyCollection<FileCabinetRecord>(FindByIndex(this.lastNameIndex, lastName));
+            return new FileCabinetMemoryIterator(FindByIndex(this.lastNameIndex, lastName));
         }
 
-        /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
+        public IFileCabinetRecordIterator FindByDateOfBirth(string dateOfBirth)
         {
             if (DateTime.TryParse(dateOfBirth, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
             {
-                return new ReadOnlyCollection<FileCabinetRecord>(FindByIndex(this.dateOfBirthIndex, date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)));
+                return new FileCabinetMemoryIterator(FindByIndex(this.dateOfBirthIndex, date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)));
             }
-
-            return new ReadOnlyCollection<FileCabinetRecord>(new List<FileCabinetRecord>());
+            return new FileCabinetMemoryIterator(new List<FileCabinetRecord>());
         }
 
         /// <inheritdoc/>

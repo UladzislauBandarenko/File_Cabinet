@@ -1,5 +1,5 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 
 namespace FileCabinetApp.CommandHandlers
 {
@@ -39,34 +39,39 @@ namespace FileCabinetApp.CommandHandlers
                 var property = inputs[1].ToLowerInvariant();
                 var value = inputs[2].Trim('"');
 
-                ReadOnlyCollection<FileCabinetRecord> records;
+                IFileCabinetRecordIterator iterator;
 
                 switch (property)
                 {
                     case "firstname":
-                        records = this.fileCabinetService.FindByFirstName(value);
+                        iterator = this.fileCabinetService.FindByFirstName(value);
                         break;
                     case "lastname":
-                        records = this.fileCabinetService.FindByLastName(value);
+                        iterator = this.fileCabinetService.FindByLastName(value);
                         break;
                     case "dateofbirth":
-                        records = this.fileCabinetService.FindByDateOfBirth(value);
+                        iterator = this.fileCabinetService.FindByDateOfBirth(value);
                         break;
                     default:
                         Console.WriteLine($"Searching by {property} is not supported.");
                         return;
                 }
 
-                if (records.Count > 0)
+                int count = 0;
+                while (iterator.MoveNext())
                 {
-                    foreach (var record in records)
-                    {
-                        Console.WriteLine($"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}");
-                    }
+                    var record = iterator.Current;
+                    Console.WriteLine($"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}");
+                    count++;
+                }
+
+                if (count == 0)
+                {
+                    Console.WriteLine("No records found.");
                 }
                 else
                 {
-                    Console.WriteLine("No records found.");
+                    Console.WriteLine($"{count} record(s) found.");
                 }
             }
             else if (this.nextHandler != null)

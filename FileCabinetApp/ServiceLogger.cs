@@ -58,21 +58,21 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
+        public IFileCabinetRecordIterator FindByFirstName(string firstName)
         {
             this.Log("FindByFirstName", $"FirstName: {firstName}");
             return this.service.FindByFirstName(firstName);
         }
 
         /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName)
+        public IFileCabinetRecordIterator FindByLastName(string lastName)
         {
             this.Log("FindByLastName", $"LastName: {lastName}");
             return this.service.FindByLastName(lastName);
         }
 
         /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
+        public IFileCabinetRecordIterator FindByDateOfBirth(string dateOfBirth)
         {
             this.Log("FindByDateOfBirth", $"DateOfBirth: {dateOfBirth}");
             return this.service.FindByDateOfBirth(dateOfBirth);

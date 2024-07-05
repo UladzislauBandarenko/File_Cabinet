@@ -69,7 +69,7 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> FindByFirstName(string firstName)
+        public IFileCabinetRecordIterator FindByFirstName(string firstName)
         {
             this.stopwatch.Restart();
             var result = this.service.FindByFirstName(firstName);
@@ -79,7 +79,7 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> FindByLastName(string lastName)
+        public IFileCabinetRecordIterator FindByLastName(string lastName)
         {
             this.stopwatch.Restart();
             var result = this.service.FindByLastName(lastName);
@@ -89,7 +89,7 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public ReadOnlyCollection<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
+        public IFileCabinetRecordIterator FindByDateOfBirth(string dateOfBirth)
         {
             this.stopwatch.Restart();
             var result = this.service.FindByDateOfBirth(dateOfBirth);

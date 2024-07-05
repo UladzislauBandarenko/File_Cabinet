@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
 
@@ -22,6 +23,17 @@ namespace FileCabinetApp
         {
             this.service = service;
             this.logWriter = new StreamWriter(logFilePath, true);
+        }
+
+        public IEnumerator<FileCabinetRecord> GetEnumerator()
+        {
+            this.Log("GetEnumerator");
+            return this.service.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
         }
 
         /// <inheritdoc/>
@@ -58,21 +70,21 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public IFileCabinetRecordIterator FindByFirstName(string firstName)
+        public IEnumerable<FileCabinetRecord> FindByFirstName(string firstName)
         {
             this.Log("FindByFirstName", $"FirstName: {firstName}");
             return this.service.FindByFirstName(firstName);
         }
 
         /// <inheritdoc/>
-        public IFileCabinetRecordIterator FindByLastName(string lastName)
+        public IEnumerable<FileCabinetRecord> FindByLastName(string lastName)
         {
             this.Log("FindByLastName", $"LastName: {lastName}");
             return this.service.FindByLastName(lastName);
         }
 
         /// <inheritdoc/>
-        public IFileCabinetRecordIterator FindByDateOfBirth(string dateOfBirth)
+        public IEnumerable<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
             this.Log("FindByDateOfBirth", $"DateOfBirth: {dateOfBirth}");
             return this.service.FindByDateOfBirth(dateOfBirth);

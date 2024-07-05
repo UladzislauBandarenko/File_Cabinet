@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
@@ -28,6 +29,16 @@ namespace FileCabinetApp
         /// The service.
         /// </value>
         public IFileCabinetService Service => this.service;
+
+        public IEnumerator<FileCabinetRecord> GetEnumerator()
+        {
+            return this.service.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
 
         /// <inheritdoc/>
         public int CreateRecord(PersonalInfo personalInfo)
@@ -69,7 +80,7 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public IFileCabinetRecordIterator FindByFirstName(string firstName)
+        public IEnumerable<FileCabinetRecord> FindByFirstName(string firstName)
         {
             this.stopwatch.Restart();
             var result = this.service.FindByFirstName(firstName);
@@ -79,7 +90,7 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public IFileCabinetRecordIterator FindByLastName(string lastName)
+        public IEnumerable<FileCabinetRecord> FindByLastName(string lastName)
         {
             this.stopwatch.Restart();
             var result = this.service.FindByLastName(lastName);
@@ -89,7 +100,7 @@ namespace FileCabinetApp
         }
 
         /// <inheritdoc/>
-        public IFileCabinetRecordIterator FindByDateOfBirth(string dateOfBirth)
+        public IEnumerable<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
             this.stopwatch.Restart();
             var result = this.service.FindByDateOfBirth(dateOfBirth);

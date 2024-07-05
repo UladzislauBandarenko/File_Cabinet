@@ -39,18 +39,18 @@ namespace FileCabinetApp.CommandHandlers
                 var property = inputs[1].ToLowerInvariant();
                 var value = inputs[2].Trim('"');
 
-                IFileCabinetRecordIterator iterator;
+                IEnumerable<FileCabinetRecord> records;
 
                 switch (property)
                 {
                     case "firstname":
-                        iterator = this.fileCabinetService.FindByFirstName(value);
+                        records = this.fileCabinetService.FindByFirstName(value);
                         break;
                     case "lastname":
-                        iterator = this.fileCabinetService.FindByLastName(value);
+                        records = this.fileCabinetService.FindByLastName(value);
                         break;
                     case "dateofbirth":
-                        iterator = this.fileCabinetService.FindByDateOfBirth(value);
+                        records = this.fileCabinetService.FindByDateOfBirth(value);
                         break;
                     default:
                         Console.WriteLine($"Searching by {property} is not supported.");
@@ -58,9 +58,8 @@ namespace FileCabinetApp.CommandHandlers
                 }
 
                 int count = 0;
-                while (iterator.MoveNext())
+                foreach (var record in records)
                 {
-                    var record = iterator.Current;
                     Console.WriteLine($"#{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:yyyy-MMM-dd}, {record.Age}, {record.Salary:C2}, {record.Gender}");
                     count++;
                 }

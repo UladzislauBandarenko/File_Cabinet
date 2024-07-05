@@ -1,6 +1,8 @@
+using System.Collections;
+
 namespace FileCabinetApp;
 
-public class FileCabinetFilesystemIterator : IFileCabinetRecordIterator
+public class FileCabinetFilesystemIterator : IEnumerator<FileCabinetRecord>
 {
     private const int RecordSize = 278;
     private const short ActiveStatus = 1;
@@ -15,6 +17,8 @@ public class FileCabinetFilesystemIterator : IFileCabinetRecordIterator
     }
 
     public FileCabinetRecord Current { get; private set; }
+
+    object IEnumerator.Current => this.Current;
 
     public bool MoveNext()
     {
@@ -34,7 +38,12 @@ public class FileCabinetFilesystemIterator : IFileCabinetRecordIterator
         this.Current = null;
     }
 
-    private FileCabinetRecord? ReadRecordAtPosition(long position)
+    public void Dispose()
+    {
+        // Нет необходимости в освобождении ресурсов
+    }
+
+    private FileCabinetRecord ReadRecordAtPosition(long position)
     {
         this.fileStream.Seek(position, SeekOrigin.Begin);
         byte[] buffer = new byte[RecordSize];

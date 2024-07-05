@@ -1,6 +1,6 @@
 namespace FileCabinetApp;
 
-public interface IFileCabinetRecordIterator
+public interface IFileCabinetRecordIterator : IEnumerator<FileCabinetRecord>
 {
     bool MoveNext();
 

@@ -1,6 +1,8 @@
+using System.Collections;
+
 namespace FileCabinetApp;
 
-public class FileCabinetMemoryIterator : IFileCabinetRecordIterator
+public class FileCabinetMemoryIterator : IEnumerator<FileCabinetRecord>
 {
     private readonly List<FileCabinetRecord> records;
     private int currentIndex = -1;
@@ -11,6 +13,8 @@ public class FileCabinetMemoryIterator : IFileCabinetRecordIterator
     }
 
     public FileCabinetRecord Current => this.currentIndex >= 0 && this.currentIndex < this.records.Count ? this.records[this.currentIndex] : null;
+
+    object IEnumerator.Current => this.Current;
 
     public bool MoveNext()
     {
@@ -26,5 +30,10 @@ public class FileCabinetMemoryIterator : IFileCabinetRecordIterator
     public void Reset()
     {
         this.currentIndex = -1;
+    }
+
+    public void Dispose()
+    {
+        // Нет необходимости в освобождении ресурсов
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using FileCabinetApp.Validators;
@@ -7,7 +8,7 @@ namespace FileCabinetApp
     /// <summary>
     /// Represents a service for working with the file cabinet.
     /// </summary>
-    public class FileCabinetMemoryService : IFileCabinetService
+    public class FileCabinetMemoryService : IFileCabinetService, IEnumerable<FileCabinetRecord>
     {
         private readonly List<FileCabinetRecord> records = new List<FileCabinetRecord>();
         private readonly Dictionary<string, List<FileCabinetRecord>> firstNameIndex = new Dictionary<string, List<FileCabinetRecord>>(StringComparer.OrdinalIgnoreCase);
@@ -171,23 +172,26 @@ namespace FileCabinetApp
             this.AddToIndices(record);
         }
 
-        public IFileCabinetRecordIterator FindByFirstName(string firstName)
+        public IEnumerable<FileCabinetRecord> FindByFirstName(string firstName)
         {
-            return new FileCabinetMemoryIterator(FindByIndex(this.firstNameIndex, firstName));
+            // Реализация для FileCabinetMemoryService
+            return this.records.Where(r => string.Equals(r.FirstName, firstName, StringComparison.OrdinalIgnoreCase));
         }
 
-        public IFileCabinetRecordIterator FindByLastName(string lastName)
+        public IEnumerable<FileCabinetRecord> FindByLastName(string lastName)
         {
-            return new FileCabinetMemoryIterator(FindByIndex(this.lastNameIndex, lastName));
+            // Реализация для FileCabinetMemoryService
+            return this.records.Where(r => string.Equals(r.LastName, lastName, StringComparison.OrdinalIgnoreCase));
         }
 
-        public IFileCabinetRecordIterator FindByDateOfBirth(string dateOfBirth)
+        public IEnumerable<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
-            if (DateTime.TryParse(dateOfBirth, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
+            // Реализация для FileCabinetMemoryService
+            if (DateTime.TryParse(dateOfBirth, out DateTime date))
             {
-                return new FileCabinetMemoryIterator(FindByIndex(this.dateOfBirthIndex, date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)));
+                return this.records.Where(r => r.DateOfBirth.Date == date.Date);
             }
-            return new FileCabinetMemoryIterator(new List<FileCabinetRecord>());
+            return Enumerable.Empty<FileCabinetRecord>();
         }
 
         /// <inheritdoc/>
@@ -284,6 +288,16 @@ namespace FileCabinetApp
             AddToIndex(this.firstNameIndex, record.FirstName, record);
             AddToIndex(this.lastNameIndex, record.LastName, record);
             AddToIndex(this.dateOfBirthIndex, record.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), record);
+        }
+
+        public IEnumerator<FileCabinetRecord> GetEnumerator()
+        {
+            return new FileCabinetMemoryIterator(this.records);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
         }
     }
 }

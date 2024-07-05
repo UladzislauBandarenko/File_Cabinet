@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
@@ -8,7 +9,7 @@ namespace FileCabinetApp
     /// <summary>
     /// Represents a service for working with the file cabinet.
     /// </summary>
-    public class FileCabinetFilesystemService : IFileCabinetService
+    public class FileCabinetFilesystemService : IFileCabinetService, IEnumerable<FileCabinetRecord>
     {
         private const int RecordSize = 278;
         private const short ActiveStatus = 1;
@@ -34,6 +35,16 @@ namespace FileCabinetApp
             this.validator = validatorBuilder.Build();
             this.fileStream = fileStream;
             this.InitializeIndices();
+        }
+
+        public IEnumerator<FileCabinetRecord> GetEnumerator()
+        {
+            return new FileCabinetRecordEnumerator(this);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         /// <inheritdoc/>
@@ -165,7 +176,7 @@ namespace FileCabinetApp
                     writer.Write(record.DateOfBirth.Day); // Day (4 bytes)
                     writer.Write(record.Age); // Age (2 bytes)
                     writer.Write(record.Salary); // Salary (8 bytes)
-                    writer.Write(record.Gender); // Gender (2 bytes)
+                    writer.Write((short)record.Gender); // Gender (2 bytes)
                 }
 
                 this.fileStream.Write(buffer, 0, RecordSize);
@@ -338,40 +349,58 @@ namespace FileCabinetApp
             }
         }
 
-        public IFileCabinetRecordIterator FindByFirstName(string firstName)
+        public IEnumerable<FileCabinetRecord> FindByFirstName(string firstName)
         {
             Console.WriteLine($"Searching for firstName: '{firstName}'");
             if (this.firstNameIndex.TryGetValue(firstName, out var positions))
             {
                 Console.WriteLine($"Found {positions.Count} positions in index");
-                return new FileCabinetFilesystemIterator(this.fileStream, positions);
+                foreach (var position in positions)
+                {
+                    var record = this.ReadRecordAtPosition(position);
+                    if (record != null)
+                    {
+                        yield return record;
+                    }
+                }
             }
             Console.WriteLine("No positions found in index");
-            return new FileCabinetFilesystemIterator(this.fileStream, new List<long>());
         }
 
-        public IFileCabinetRecordIterator FindByLastName(string lastName)
+        public IEnumerable<FileCabinetRecord> FindByLastName(string lastName)
         {
             Console.WriteLine($"Searching for lastName: '{lastName}'");
             if (this.lastNameIndex.TryGetValue(lastName, out var positions))
             {
                 Console.WriteLine($"Found {positions.Count} positions in index");
-                return new FileCabinetFilesystemIterator(this.fileStream, positions);
+                foreach (var position in positions)
+                {
+                    var record = this.ReadRecordAtPosition(position);
+                    if (record != null)
+                    {
+                        yield return record;
+                    }
+                }
             }
             Console.WriteLine("No positions found in index");
-            return new FileCabinetFilesystemIterator(this.fileStream, new List<long>());
         }
 
-        public IFileCabinetRecordIterator FindByDateOfBirth(string dateOfBirth)
+        public IEnumerable<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth)
         {
             Console.WriteLine($"Searching for dateOfBirth: '{dateOfBirth}'");
             if (this.dateOfBirthIndex.TryGetValue(dateOfBirth, out var positions))
             {
                 Console.WriteLine($"Found {positions.Count} positions in index");
-                return new FileCabinetFilesystemIterator(this.fileStream, positions);
+                foreach (var position in positions)
+                {
+                    var record = this.ReadRecordAtPosition(position);
+                    if (record != null)
+                    {
+                        yield return record;
+                    }
+                }
             }
             Console.WriteLine("No positions found in index");
-            return new FileCabinetFilesystemIterator(this.fileStream, new List<long>());
         }
 
         /// <inheritdoc/>

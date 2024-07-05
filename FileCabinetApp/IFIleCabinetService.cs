@@ -12,7 +12,7 @@ namespace FileCabinetApp
     /// <summary>
     /// Represents a service for working with the file cabinet.
     /// </summary>
-    public interface IFileCabinetService
+    public interface IFileCabinetService : IEnumerable<FileCabinetRecord>
     {
         /// <summary>
         /// Creates a record in the file cabinet.
@@ -46,21 +46,21 @@ namespace FileCabinetApp
         /// </summary>
         /// <param name="firstName">The first name to search for.</param>
         /// <returns>The collection of records.</returns>
-        IFileCabinetRecordIterator FindByFirstName(string firstName);
+        IEnumerable<FileCabinetRecord> FindByFirstName(string firstName);
 
         /// <summary>
         /// Finds records by last name.
         /// </summary>
         /// <param name="lastName">The last name to search for.</param>
         /// <returns>The collection of records.</returns>
-        IFileCabinetRecordIterator FindByLastName(string lastName);
+        IEnumerable<FileCabinetRecord> FindByLastName(string lastName);
 
         /// <summary>
         /// Finds records by date of birth.
         /// </summary>
         /// <param name="dateOfBirth">The date of birth to search for.</param>
         /// <returns>The collection of records.</returns>
-        IFileCabinetRecordIterator FindByDateOfBirth(string dateOfBirth);
+        IEnumerable<FileCabinetRecord> FindByDateOfBirth(string dateOfBirth);
 
         /// <summary>
         /// Makes a snapshot of the file cabinet.

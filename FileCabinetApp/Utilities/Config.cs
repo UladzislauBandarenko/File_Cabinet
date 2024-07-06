@@ -1,7 +1,7 @@
 using FileCabinetApp.Validators;
 using Microsoft.Extensions.Configuration;
 
-namespace FileCabinetApp
+namespace FileCabinetApp.Utilities
 {
     /// <summary>
     /// Represents the configuration for the application.

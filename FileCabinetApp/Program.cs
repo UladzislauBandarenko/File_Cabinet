@@ -26,66 +26,17 @@ public static class Program
             throw new ArgumentNullException(nameof(args));
         }
 
-        string validationRules = "default";
-        string storage = "memory";
-        bool useStopwatch = false;
-        bool useLogger = false;
-
-        int i = 0;
-        while (i < args.Length)
-        {
-            if (args[i] == "--validation-rules" || args[i] == "-v")
-            {
-                if (i + 1 < args.Length)
-                {
-                    validationRules = args[i + 1].ToLowerInvariant();
-                    if (validationRules != "default" && validationRules != "custom")
-                    {
-                        Console.WriteLine("Invalid validation rules specified. Using default rules.");
-                        validationRules = "default";
-                    }
-
-                    i += 2;
-                    continue;
-                }
-            }
-            else if (args[i] == "--storage" || (args[i] == "-s" && i + 1 < args.Length))
-            {
-                storage = args[i + 1].ToLowerInvariant();
-                if (storage != "memory" && storage != "file")
-                {
-                    Console.WriteLine("Invalid storage type specified. Using memory storage.");
-                    storage = "memory";
-                }
-
-                i += 2;
-                continue;
-            }
-            else if (args[i] == "--use-stopwatch")
-            {
-                useStopwatch = true;
-                i++;
-                continue;
-            }
-            else if (args[i] == "--use-logger")
-            {
-                useLogger = true;
-                i++;
-                continue;
-            }
-
-            i++;
-        }
+        var options = CommandLineOptions.Parse(args);
 
         Config.Initialize();
 
-        var validationConfig = Config.GetValidationRules(validationRules);
+        var validationConfig = Config.GetValidationRules(options.ValidationRules);
         ValidatorBuilder validatorBuilder = new ValidatorBuilder();
         validatorBuilder.AddValidators(validationConfig);
 
-        fileCabinetService = CreateFileCabinetService(storage, validatorBuilder, useStopwatch, useLogger);
+        fileCabinetService = CreateFileCabinetService(options.Storage, validatorBuilder, options.UseStopwatch, options.UseLogger);
 
-        PrintStartupMessages(storage, validationRules, useStopwatch, useLogger);
+        PrintStartupMessages(options.Storage, options.ValidationRules, options.UseStopwatch, options.UseLogger);
 
         var commandHandler = CreateCommandHandlers(fileCabinetService);
 

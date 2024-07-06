@@ -4,38 +4,6 @@
         <name>FileCabinetApp</name>
     </assembly>
     <members>
-        <member name="T:FileCabinetApp.Config">
-            <summary>
-            Represents the configuration for the application.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.Config.Initialize">
-            <summary>
-            Initializes the configuration.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.Config.GetValidationRules(System.String)">
-            <summary>
-            Gets the validation rules configuration.
-            </summary>
-            <param name="ruleset">The ruleset to get configuration for.</param>
-            <returns>The validation configuration.</returns>
-        </member>
-        <member name="M:FileCabinetApp.Config.GetValue(System.String)">
-            <summary>
-            Gets a configuration value.
-            </summary>
-            <param name="key">The configuration key.</param>
-            <returns>The configuration value.</returns>
-        </member>
-        <member name="M:FileCabinetApp.Config.GetSection``1(System.String)">
-            <summary>
-            Gets a strongly typed configuration section.
-            </summary>
-            <typeparam name="T">The type to deserialize the section to.</typeparam>
-            <param name="sectionName">The section name in the configuration.</param>
-            <returns>The deserialized configuration section.</returns>
-        </member>
         <member name="T:FileCabinetApp.CommandHandlers.CommandHandlerBase">
             <summary>
             Command handler base.
@@ -815,6 +783,96 @@
         <member name="M:FileCabinetApp.ServiceMeter.RecordExists(System.Int32)">
             <inheritdoc/>
         </member>
+        <member name="T:FileCabinetApp.Utilities.CommandLineOptions">
+            <summary>
+            Command line options for the File Cabinet Application.
+            </summary>
+        </member>
+        <member name="P:FileCabinetApp.Utilities.CommandLineOptions.ValidationRules">
+            <summary>
+            Gets or sets the validation rules to use.
+            </summary>
+            <value>The validation rules to use.</value>
+        </member>
+        <member name="P:FileCabinetApp.Utilities.CommandLineOptions.Storage">
+            <summary>
+            Gets or sets the storage type to use.
+            </summary>
+            <value>The storage type to use.</value>
+        </member>
+        <member name="P:FileCabinetApp.Utilities.CommandLineOptions.UseStopwatch">
+            <summary>
+            Gets or sets a value indicating whether to use the stopwatch.
+            </summary>
+            <value>The stopwatch.</value>
+        </member>
+        <member name="P:FileCabinetApp.Utilities.CommandLineOptions.UseLogger">
+            <summary>
+            Gets or sets a value indicating whether to use the logger.
+            </summary>
+            <value>The logger.</value>
+        </member>
+        <member name="M:FileCabinetApp.Utilities.CommandLineOptions.Parse(System.String[])">
+            <summary>
+            Parses the command line arguments.
+            </summary>
+            <param name="args">The command line arguments.</param>
+            <returns>The command line options.</returns>
+        </member>
+        <member name="T:FileCabinetApp.Utilities.Config">
+            <summary>
+            Represents the configuration for the application.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.Utilities.Config.Initialize">
+            <summary>
+            Initializes the configuration.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.Utilities.Config.GetValidationRules(System.String)">
+            <summary>
+            Gets the validation rules configuration.
+            </summary>
+            <param name="ruleset">The ruleset to get configuration for.</param>
+            <returns>The validation configuration.</returns>
+        </member>
+        <member name="M:FileCabinetApp.Utilities.Config.GetValue(System.String)">
+            <summary>
+            Gets a configuration value.
+            </summary>
+            <param name="key">The configuration key.</param>
+            <returns>The configuration value.</returns>
+        </member>
+        <member name="M:FileCabinetApp.Utilities.Config.GetSection``1(System.String)">
+            <summary>
+            Gets a strongly typed configuration section.
+            </summary>
+            <typeparam name="T">The type to deserialize the section to.</typeparam>
+            <param name="sectionName">The section name in the configuration.</param>
+            <returns>The deserialized configuration section.</returns>
+        </member>
+        <member name="T:FileCabinetApp.Utilities.StringSimilarity">
+            <summary>
+            Provides methods for calculating the Levenshtein distance between two strings and finding the most similar commands.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.Utilities.StringSimilarity.LevenshteinDistance(System.String,System.String)">
+            <summary>
+            Calculates the Levenshtein distance between two strings.
+            </summary>
+            <param name="s">The first string.</param>
+            <param name="t">The second string.</param>
+            <returns>The Levenshtein distance between the two strings.</returns>
+        </member>
+        <member name="M:FileCabinetApp.Utilities.StringSimilarity.FindSimilarCommands(System.String,System.Collections.Generic.IEnumerable{System.String},System.Int32)">
+            <summary>
+            Finds the most similar commands to the input string.
+            </summary>
+            <param name="input">The input string.</param>
+            <param name="commands">The commands to compare against.</param>
+            <param name="maxDistance">The maximum distance between the input string and the commands.</param>
+            <returns>The most similar commands.</returns>
+        </member>
         <member name="T:FileCabinetApp.FileCabinetRecordCsvReader">
             <summary>
             Represents a reader for CSV files.
@@ -882,28 +940,6 @@
             Writes the specified records.
             </summary>
             <param name="records">The records.</param>
-        </member>
-        <member name="T:FileCabinetApp.Utilities.StringSimilarity">
-            <summary>
-            Provides methods for calculating the Levenshtein distance between two strings and finding the most similar commands.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.Utilities.StringSimilarity.LevenshteinDistance(System.String,System.String)">
-            <summary>
-            Calculates the Levenshtein distance between two strings.
-            </summary>
-            <param name="s">The first string.</param>
-            <param name="t">The second string.</param>
-            <returns>The Levenshtein distance between the two strings.</returns>
-        </member>
-        <member name="M:FileCabinetApp.Utilities.StringSimilarity.FindSimilarCommands(System.String,System.Collections.Generic.IEnumerable{System.String},System.Int32)">
-            <summary>
-            Finds the most similar commands to the input string.
-            </summary>
-            <param name="input">The input string.</param>
-            <param name="commands">The commands to compare against.</param>
-            <param name="maxDistance">The maximum distance between the input string and the commands.</param>
-            <returns>The most similar commands.</returns>
         </member>
         <member name="T:FileCabinetApp.Validators.CompositeValidator`1">
             <summary>

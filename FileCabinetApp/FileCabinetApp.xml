@@ -4,6 +4,38 @@
         <name>FileCabinetApp</name>
     </assembly>
     <members>
+        <member name="T:FileCabinetApp.Config">
+            <summary>
+            Represents the configuration for the application.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.Config.Initialize">
+            <summary>
+            Initializes the configuration.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.Config.GetValidationRules(System.String)">
+            <summary>
+            Gets the validation rules configuration.
+            </summary>
+            <param name="ruleset">The ruleset to get configuration for.</param>
+            <returns>The validation configuration.</returns>
+        </member>
+        <member name="M:FileCabinetApp.Config.GetValue(System.String)">
+            <summary>
+            Gets a configuration value.
+            </summary>
+            <param name="key">The configuration key.</param>
+            <returns>The configuration value.</returns>
+        </member>
+        <member name="M:FileCabinetApp.Config.GetSection``1(System.String)">
+            <summary>
+            Gets a strongly typed configuration section.
+            </summary>
+            <typeparam name="T">The type to deserialize the section to.</typeparam>
+            <param name="sectionName">The section name in the configuration.</param>
+            <returns>The deserialized configuration section.</returns>
+        </member>
         <member name="T:FileCabinetApp.CommandHandlers.CommandHandlerBase">
             <summary>
             Command handler base.
@@ -208,6 +240,68 @@
             <param name="setClause">The set clause.</param>
             <returns>Fields to update.</returns>
         </member>
+        <member name="T:FileCabinetApp.Models.AppConstants">
+            <summary>
+            Constants for the application.
+            </summary>
+        </member>
+        <member name="F:FileCabinetApp.Models.AppConstants.DeveloperName">
+            <summary>
+            Developer name.
+            </summary>
+        </member>
+        <member name="F:FileCabinetApp.Models.AppConstants.HintMessage">
+            <summary>
+            Hint message.
+            </summary>
+        </member>
+        <member name="T:FileCabinetApp.Models.HelpMessage">
+            <summary>
+            Help message.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.Models.HelpMessage.#ctor(System.String,System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:FileCabinetApp.Models.HelpMessage"/> class.
+            </summary>
+            <param name="command">The command.</param>
+            <param name="shortDescription">The short description.</param>
+            <param name="detailedDescription">The detailed description.</param>
+        </member>
+        <member name="P:FileCabinetApp.Models.HelpMessage.Command">
+            <summary>
+            Gets or sets the command.
+            </summary>
+            <value>
+            The command.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.Models.HelpMessage.ShortDescription">
+            <summary>
+            Gets or sets the short description.
+            </summary>
+            <value>
+            The short description.
+            </value>
+        </member>
+        <member name="P:FileCabinetApp.Models.HelpMessage.DetailedDescription">
+            <summary>
+            Gets or sets the detailed description.
+            </summary>
+            <value>
+            The detailed description.
+            </value>
+        </member>
+        <member name="T:FileCabinetApp.Models.HelpMessages">
+            <summary>
+            Help messages for the application.
+            </summary>
+        </member>
+        <member name="F:FileCabinetApp.Models.HelpMessages.Messages">
+            <summary>
+            Help messages for the application.
+            </summary>
+        </member>
         <member name="T:FileCabinetApp.FileCabinetRecord">
             <summary>
             Represents a record in the file cabinet.
@@ -260,43 +354,6 @@
             Gets or sets the printed representation of the record.
             </summary>
             <value>The printed representation of the record.</value>
-        </member>
-        <member name="T:FileCabinetApp.Models.HelpMessage">
-            <summary>
-            Help message.
-            </summary>
-        </member>
-        <member name="M:FileCabinetApp.Models.HelpMessage.#ctor(System.String,System.String,System.String)">
-            <summary>
-            Initializes a new instance of the <see cref="T:FileCabinetApp.Models.HelpMessage"/> class.
-            </summary>
-            <param name="command">The command.</param>
-            <param name="shortDescription">The short description.</param>
-            <param name="detailedDescription">The detailed description.</param>
-        </member>
-        <member name="P:FileCabinetApp.Models.HelpMessage.Command">
-            <summary>
-            Gets or sets the command.
-            </summary>
-            <value>
-            The command.
-            </value>
-        </member>
-        <member name="P:FileCabinetApp.Models.HelpMessage.ShortDescription">
-            <summary>
-            Gets or sets the short description.
-            </summary>
-            <value>
-            The short description.
-            </value>
-        </member>
-        <member name="P:FileCabinetApp.Models.HelpMessage.DetailedDescription">
-            <summary>
-            Gets or sets the detailed description.
-            </summary>
-            <value>
-            The detailed description.
-            </value>
         </member>
         <member name="T:FileCabinetApp.PersonalInfo">
             <summary>

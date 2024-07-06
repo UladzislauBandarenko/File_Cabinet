@@ -12,9 +12,6 @@ namespace FileCabinetApp;
 /// </summary>
 public static class Program
 {
-    private const string DeveloperName = "Uladzislau Bandarenko";
-    private const string HintMessage = "Enter your command, or enter 'help' to get help.";
-
     private static readonly IReadOnlyCollection<HelpMessage> HelpMessages = new[]
     {
         new HelpMessage("help", "prints the help screen", "The 'help' command prints the help screen."),
@@ -127,7 +124,7 @@ public static class Program
             fileCabinetService = new ServiceLogger(fileCabinetService, logFilePath);
         }
 
-        Console.WriteLine($"File Cabinet Application, developed by {Program.DeveloperName}");
+        Console.WriteLine($"File Cabinet Application, developed by {AppConstants.DeveloperName}");
         Console.WriteLine($"Using {storage} storage.");
         Console.WriteLine($"Using {validationRules} validation rules.");
         if (useStopwatch)
@@ -140,7 +137,7 @@ public static class Program
             Console.WriteLine("Service logging is enabled.");
         }
 
-        Console.WriteLine(Program.HintMessage);
+        Console.WriteLine(AppConstants.HintMessage);
         Console.WriteLine();
 
         var commandHandler = CreateCommandHandlers(fileCabinetService);
@@ -152,7 +149,7 @@ public static class Program
 
             if (string.IsNullOrEmpty(command))
             {
-                Console.WriteLine(Program.HintMessage);
+                Console.WriteLine(AppConstants.HintMessage);
                 continue;
             }
 

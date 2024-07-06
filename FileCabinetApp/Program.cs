@@ -93,12 +93,9 @@ public static class Program
             i++;
         }
 
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("validation-rules.json", optional: false, reloadOnChange: true)
-            .Build();
+        Config.Initialize();
 
-        var validationConfig = configuration.GetSection(validationRules).Get<ValidationConfig>() ?? new ValidationConfig();
+        var validationConfig = Config.GetValidationRules(validationRules);
         ValidatorBuilder validatorBuilder = new ValidatorBuilder();
         validatorBuilder.AddValidators(validationConfig);
 

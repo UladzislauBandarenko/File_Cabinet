@@ -1,5 +1,6 @@
 ﻿using FileCabinetApp.CommandHandlers;
 using FileCabinetApp.Models;
+using FileCabinetApp.Utilities;
 using FileCabinetApp.Validators;
 
 namespace FileCabinetApp;
@@ -10,7 +11,6 @@ namespace FileCabinetApp;
 public static class Program
 {
     private static readonly IReadOnlyCollection<HelpMessage> HelpMessages = Models.HelpMessages.Messages;
-
     private static IFileCabinetService? fileCabinetService;
 
     private static bool isRunning = true;
@@ -83,27 +83,7 @@ public static class Program
         ValidatorBuilder validatorBuilder = new ValidatorBuilder();
         validatorBuilder.AddValidators(validationConfig);
 
-        if (storage == "file")
-        {
-            string filePath = "cabinet-records.db";
-            FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-            fileCabinetService = new FileCabinetFilesystemService(validatorBuilder, fileStream);
-        }
-        else
-        {
-            fileCabinetService = new FileCabinetMemoryService(validatorBuilder);
-        }
-
-        if (useStopwatch)
-        {
-            fileCabinetService = new ServiceMeter(fileCabinetService);
-        }
-
-        if (useLogger)
-        {
-            string logFilePath = "filecabinet-log.txt";
-            fileCabinetService = new ServiceLogger(fileCabinetService, logFilePath);
-        }
+        fileCabinetService = CreateFileCabinetService(storage, validatorBuilder, useStopwatch, useLogger);
 
         PrintStartupMessages(storage, validationRules, useStopwatch, useLogger);
 
@@ -112,57 +92,32 @@ public static class Program
         RunCommandLoop(commandHandler);
     }
 
-    private static int LevenshteinDistance(string s, string t)
+    private static IFileCabinetService CreateFileCabinetService(string storage, ValidatorBuilder validatorBuilder, bool useStopwatch, bool useLogger)
     {
-        int n = s.Length;
-        int m = t.Length;
-        int[,] d = new int[n + 1, m + 1];
-
-        if (n == 0)
+        IFileCabinetService service;
+        if (storage == "file")
         {
-            return m;
+            string filePath = "cabinet-records.db";
+            FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            service = new FileCabinetFilesystemService(validatorBuilder, fileStream);
+        }
+        else
+        {
+            service = new FileCabinetMemoryService(validatorBuilder);
         }
 
-        if (m == 0)
+        if (useStopwatch)
         {
-            return n;
+            service = new ServiceMeter(service);
         }
 
-        for (int i = 0; i <= n; d[i, 0] = i++)
+        if (useLogger)
         {
+            string logFilePath = "filecabinet-log.txt";
+            service = new ServiceLogger(service, logFilePath);
         }
 
-        for (int j = 0; j <= m; d[0, j] = j++)
-        {
-        }
-
-        for (int i = 1; i <= n; i++)
-        {
-            for (int j = 1; j <= m; j++)
-            {
-                int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-                d[i, j] = Math.Min(
-                    Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
-                    d[i - 1, j - 1] + cost);
-            }
-        }
-
-        return d[n, m];
-    }
-
-    private static List<string> FindSimilarCommands(string input, IEnumerable<string> commands, int maxDistance = 3)
-    {
-        var similarCommands = new List<string>();
-        foreach (var command in commands)
-        {
-            int distance = LevenshteinDistance(input.ToLowerInvariant(), command.ToLowerInvariant());
-            if (distance <= maxDistance)
-            {
-                similarCommands.Add(command);
-            }
-        }
-
-        return similarCommands.OrderBy(c => LevenshteinDistance(input.ToLowerInvariant(), c.ToLowerInvariant())).ToList();
+        return service;
     }
 
     private static ICommandHandler CreateCommandHandlers(IFileCabinetService fileCabinetService)
@@ -234,7 +189,7 @@ public static class Program
             }
             else
             {
-                var similarCommands = FindSimilarCommands(commandName, validCommands);
+                var similarCommands = StringSimilarity.FindSimilarCommands(commandName, validCommands);
                 Console.WriteLine($"'{commandName}' is not a valid command. See 'help' for available commands.");
 
                 if (similarCommands.Any())

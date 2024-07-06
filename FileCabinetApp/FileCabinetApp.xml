@@ -883,6 +883,28 @@
             </summary>
             <param name="records">The records.</param>
         </member>
+        <member name="T:FileCabinetApp.Utilities.StringSimilarity">
+            <summary>
+            Provides methods for calculating the Levenshtein distance between two strings and finding the most similar commands.
+            </summary>
+        </member>
+        <member name="M:FileCabinetApp.Utilities.StringSimilarity.LevenshteinDistance(System.String,System.String)">
+            <summary>
+            Calculates the Levenshtein distance between two strings.
+            </summary>
+            <param name="s">The first string.</param>
+            <param name="t">The second string.</param>
+            <returns>The Levenshtein distance between the two strings.</returns>
+        </member>
+        <member name="M:FileCabinetApp.Utilities.StringSimilarity.FindSimilarCommands(System.String,System.Collections.Generic.IEnumerable{System.String},System.Int32)">
+            <summary>
+            Finds the most similar commands to the input string.
+            </summary>
+            <param name="input">The input string.</param>
+            <param name="commands">The commands to compare against.</param>
+            <param name="maxDistance">The maximum distance between the input string and the commands.</param>
+            <returns>The most similar commands.</returns>
+        </member>
         <member name="T:FileCabinetApp.Validators.CompositeValidator`1">
             <summary>
             Composite validator.
